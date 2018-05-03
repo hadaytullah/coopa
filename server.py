@@ -27,7 +27,7 @@ def agent_portrayal(agent):
 
     return portrayal
 
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+grid = CanvasGrid(agent_portrayal, 40, 40, 600, 600)
 chart = ChartModule([{"Label": "Gini",
                       "Color": "Black"}],
                     data_collector_name='datacollector')
@@ -35,7 +35,7 @@ chart = ChartModule([{"Label": "Gini",
 server = ModularServer(CoopaModel,
                        [grid, chart],
                        "Coopa Model",
-                       {"N": n_slider, "width": 10, "height": 10})
+                       {"N": n_slider, "width": 40, "height": 40})
 #server = ModularServer(CoopaModel,
 #                       [grid],
 #                       "Coopa Model",
