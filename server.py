@@ -17,13 +17,19 @@ def agent_portrayal(agent):
                  "Filled": "true",
                  "r": 0.5}
 
-    if agent.wealth > 0:
+    if agent.type is 'agent':
         portrayal["Color"] = "red"
         portrayal["Layer"] = 0
-    else:
+    elif agent.type is 'resource':
         portrayal["Color"] = "grey"
-        portrayal["Layer"] = 1
-        portrayal["r"] = 0.2
+        portrayal["Layer"] = 0
+    elif agent.type is 'drop_point':
+        portrayal["Color"] = "blue"
+        portrayal["Layer"] = 0
+#    else:
+#        portrayal["Color"] = "grey"
+#        portrayal["Layer"] = 1
+#        portrayal["r"] = 0.2
 
     return portrayal
 

@@ -5,7 +5,13 @@ import random
 class AgentCoopa(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.wealth = random.choice([0,5])
+
+        #self.type = random.choice (['resource','agent','drop_point'])
+        self.type = random.choice (['resource','agent'])
+        if self.type is 'resource':
+            self.wealth = 1 #random.choice([0,5])
+        else:
+            self.wealth = 0
     
     def step_(self):
         print('AgentCoopa#%s, before wealth, %i' %(self.unique_id,self.wealth))
@@ -18,9 +24,17 @@ class AgentCoopa(Agent):
         print('AgentCoopa#%s, after wealth, %i' %(self.unique_id,self.wealth))
     
     def step(self):
-        self.move()
-        if self.wealth > 0:
-            self.give_money()
+        if self.type is 'agent':
+            self.move()
+            #if self.wealth > 0:
+            self.pick_resource()
+#        elif self.type is 'resource':
+#            portrayal["Color"] = "grey"
+#            portrayal["Layer"] = 0
+#        elif self.type is 'drop_point':
+#            portrayal["Color"] = "blue"
+#            portrayal["Layer"] = 0
+
     
     def move(self):
         #moore: up,down,left,right and diagonal movements
@@ -37,4 +51,15 @@ class AgentCoopa(Agent):
             other = random.choice(cellmates)
             other.wealth += 1
             self.wealth -= 1
+        print('AgentCoopa#%s, after wealth, %i' %(self.unique_id,self.wealth))
+
+    def pick_resource(self):
+        print('AgentCoopa#%s, before wealth, %i' %(self.unique_id,self.wealth))
+        cellmates = self.model.grid.get_cell_list_contents([self.pos])
+        if len(cellmates) > 1:
+            other = random.choice(cellmates)
+            if other.type is 'resource':
+                other.wealth -= 1
+                self.wealth += 1
+                self.model.grid.remove_agent(other)
         print('AgentCoopa#%s, after wealth, %i' %(self.unique_id,self.wealth))
