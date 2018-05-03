@@ -2,6 +2,14 @@ from agent_coopa import AgentCoopa
 from coopa_model import CoopaModel
 import matplotlib.pyplot as plt
 import numpy as np
+from server import server
+
+
+def start_visualization_server():
+    server.port = 8521 # The default
+    server.launch()
+
+start_visualization_server()
 
 def test1():
     print('Running Test1...')
