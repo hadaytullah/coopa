@@ -21,7 +21,7 @@ def agent_portrayal(agent):
                  "Filled": "true",
                  "r": 0.5}
 
-    if type(agent) is AgentBasic:
+    if type(agent) is AgentCoopa:
         portrayal["Color"] = "red"
         portrayal["Layer"] = 0
         portrayal["r"] = 0.8
