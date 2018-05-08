@@ -14,6 +14,7 @@ class AgentCoopa(AgentBasic):
         model.message_dispatcher.register(self)
         self.pos_resource = None # potential resource location
         self.pos_drop_point = None # they shall discover the drop point
+
     
     def step(self):
         super(AgentCoopa,self).step()
@@ -29,34 +30,39 @@ class AgentCoopa(AgentBasic):
         if self.pos_resource is None:
             super(AgentCoopa,self).move()
         else:
-            print('-- resource position {}'.format(self.pos_resource))
-            #pdb.set_trace()
-            #moore: up,down,left,right and diagonal movements
-            #von neumann: up, down, left, right
-            # include_center = false, mean do not consider its current location
-            possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
+            if random.randrange(1,100) > 50:
+                self._move_towards_point(self.pos_resource)
+            else:
+                super(AgentCoopa,self).move()
 
-            # find the step that takes the agent closer to a resource
-            # assuming that other resources exisits in proximity of a found resource
-            x_distance_shortest = abs(possible_steps[0][0]-self.pos_resource[0])
-            y_distance_shortest = abs(possible_steps[0][1]-self.pos_resource[1])
-            new_position = possible_steps[0]
+    def _move_towards_point(self, point):
+        print('-- destination point {}'.format(point))
+        #pdb.set_trace()
+        #moore: up,down,left,right and diagonal movements
+        #von neumann: up, down, left, right
+        # include_center = false, mean do not consider its current location
+        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
 
-            for step in possible_steps:
-                x_distance = abs(step[0] - self.pos_resource[0])
-                y_distance = abs(step[1] - self.pos_resource[1])
-                print('step:{}, x_distance:{} , y_distance:{}'.format(step, x_distance, y_distance))
-                if x_distance <= x_distance_shortest and y_distance <= y_distance_shortest:
-                    new_position = step
-                    print('new position for agent#{}: {}'.format(self.unique_id, new_position))
-                    x_distance_shortest = x_distance
-                    y_distance_shortest = y_distance
+        # find the step that takes the agent closer to a resource
+        # assuming that other resources exisits in proximity of a found resource
+        x_distance_shortest = abs(possible_steps[0][0] - point[0])
+        y_distance_shortest = abs(possible_steps[0][1] - point[1])
+        new_position = possible_steps[0]
 
-            #new_position = random.choice(possible_steps)
-            print('new position for agent#{}: {}'.format(self.unique_id, new_position))
-            self.model.grid.move_agent(self, new_position)
+        for step in possible_steps:
+            x_distance = abs(step[0] - point[0])
+            y_distance = abs(step[1] - point[1])
+            print('step:{}, x_distance:{} , y_distance:{}'.format(step, x_distance, y_distance))
+            if x_distance <= x_distance_shortest and y_distance <= y_distance_shortest:
+                new_position = step
+                print('new position for agent#{}: {}'.format(self.unique_id, new_position))
+                x_distance_shortest = x_distance
+                y_distance_shortest = y_distance
 
-    
+        #new_position = random.choice(possible_steps)
+        print('new position for agent#{}: {}'.format(self.unique_id, new_position))
+        self.model.grid.move_agent(self, new_position)
+
     def pick_resource(self):
         #print('Coopa.pickresource()')
         wealth_before = self.wealth
