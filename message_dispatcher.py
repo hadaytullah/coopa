@@ -7,11 +7,18 @@ import random
 # TODO: add cooperation awareness
 class MessageDispatcher:
 
-    def __init__(self, agents):
-        self.agents = agents
+    def __init__(self):
+        self.agents = []
 
     def broadcast(self, message):
-        print('Broad casting for agent#%i'.format(message.sender.unique_id))
+        print('-- Broad casting for agent# {}'.format(message.sender.unique_id))
         for agent in self.agents:
             if agent is not message.sender:
-                agent.receive(sender, message)
+                agent.receive(message)
+
+    def register(self, agent):
+        self.agents.append(agent)
+
+    def unregister(self, agent):
+        self.agents.remove(agent)
+

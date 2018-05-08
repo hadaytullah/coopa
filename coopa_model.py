@@ -6,6 +6,7 @@ from drop_point import DropPoint
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
+from message_dispatcher import MessageDispatcher
 import random
 
 def compute_gini(model):
@@ -23,7 +24,8 @@ class CoopaModel(Model):
         self.num_resources = 20
         self.grid = MultiGrid(width, height, True) #True=toroidal
         self.schedule = RandomActivation(self)
-
+        self.message_dispatcher = MessageDispatcher()
+        #self.agents = []
         # adding a single drop point
         drop_point = DropPoint(1, self)
         self.grid.place_agent(drop_point, (0,0))
@@ -41,12 +43,16 @@ class CoopaModel(Model):
         # the mighty agents arrive
         for i in range(self.num_agents):
             a = AgentCoopa(i, self)
+            #self.agents.add(a)
             self.schedule.add(a)
             
             #add to grid
             x = random.randrange(self.grid.width)
             y = random.randrange(self.grid.height)
             self.grid.place_agent(a, (x,y)) # agent.pos has (x,y)
+
+        #let messaging bus know about agents
+        #self.message_dispatcher.set_agents(self.agents)
 
         #data collector, don't really know how it works yet
         self.datacollector = DataCollector(
