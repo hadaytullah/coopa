@@ -1,4 +1,4 @@
-from mesa import Agent
+from agent_basic import AgentBasic
 from mesa.time import RandomActivation
 from resource import Resource
 from drop_point import DropPoint
@@ -7,7 +7,7 @@ import random
 
 #agent_types = ['agent','resource','drop_point']
 drop_point_exists = False
-class AgentCoopa(Agent):
+class AgentCoopa(AgentBasic):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         #global drop_point_exists

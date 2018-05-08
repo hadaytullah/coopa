@@ -3,6 +3,7 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from coopa_model import CoopaModel
 from agent_coopa import AgentCoopa
+from agent_basic import AgentBasic
 from resource import Resource
 from drop_point import DropPoint
 from mesa.visualization.UserParam import UserSettableParameter
@@ -20,7 +21,7 @@ def agent_portrayal(agent):
                  "Filled": "true",
                  "r": 0.5}
 
-    if type(agent) is AgentCoopa:
+    if type(agent) is AgentBasic:
         portrayal["Color"] = "red"
         portrayal["Layer"] = 0
         portrayal["r"] = 0.8

@@ -1,5 +1,5 @@
 from mesa import Model
-from agent_coopa import AgentCoopa
+from agent_basic import AgentBasic
 from resource import Resource
 from drop_point import DropPoint
 from mesa.time import RandomActivation
@@ -39,7 +39,7 @@ class CoopaModel(Model):
 
         # the mighty agents arrive
         for i in range(self.num_agents):
-            a = AgentCoopa(i, self)
+            a = AgentBasic(i, self)
             self.schedule.add(a)
             
             #add to grid
