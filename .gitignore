@@ -78,7 +78,6 @@ mgr_addrs.txt
 *.jpg
 *.jpeg
 *.p
-*.txt
 *.xml
 testing/
 tests/
