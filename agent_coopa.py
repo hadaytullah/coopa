@@ -3,6 +3,7 @@ from mesa.time import RandomActivation
 from resource import Resource
 from drop_point import DropPoint
 from message import Message
+from cooperation import Cooperation
 import random
 import pdb
 # TODO: add cooperation awareness
@@ -14,7 +15,7 @@ class AgentCoopa(AgentBasic):
         model.message_dispatcher.register(self)
         self.pos_resource = None # potential resource location
         self.pos_drop_point = None # they shall discover the drop point
-
+        self.cooperation = {}
     
     def step(self):
         super(AgentCoopa,self).step()
@@ -24,7 +25,17 @@ class AgentCoopa(AgentBasic):
     def receive(self, message):
         if type(message) is Message:
             print('-- Message Received from Agent# {}'.format(message.sender.unique_id))
-            self.pos_resource = [message.resource_x, message.resource_y]
+
+            if message.sender.unique_id not in self.cooperation:
+                cooperation = Cooperation(message.sender)
+                cooperation.set_trust(5) #initial trust, migh be reduced later
+                cooperation.add_message(message)
+                self.cooperation[message.sender.unique_id] = cooperation
+                self.pos_resource = [message.resource_x, message.resource_y]
+            elif self.cooperation[message.sender.unique_id].trust > 3: #ignore non trust worthy
+                self.pos_resource = [message.resource_x, message.resource_y]
+
+
 
     def move(self):
         if self.pos_resource is None:
