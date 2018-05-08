@@ -8,7 +8,7 @@ from drop_point import DropPoint
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 
-n_slider = UserSettableParameter('slider', "Number of Agents", 100, 2, 200, 1)
+n_slider = UserSettableParameter('slider', "Number of Agents", 3, 2, 200, 1)
 
 def agent_portrayal(agent):
     #portrayal = {"Shape": "circle",
@@ -23,6 +23,7 @@ def agent_portrayal(agent):
     if type(agent) is AgentCoopa:
         portrayal["Color"] = "red"
         portrayal["Layer"] = 0
+        portrayal["r"] = 0.8
     elif type(agent) is Resource:
         portrayal["Color"] = "grey"
         portrayal["Layer"] = 0
