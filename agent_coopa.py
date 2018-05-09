@@ -6,16 +6,21 @@ from message import Message
 from cooperation import Cooperation
 import random
 import pdb
-# TODO: add cooperation awareness
+
 class AgentCoopa(AgentBasic):
+    """AgentCoopa cooperates with other agents"""
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.resource_count = 1 #random.choice([0,5])
+
         model.message_dispatcher.register(self)
-        self.pos_resource = None # potential resource location
-        self.pos_drop_point = None # they shall discover the drop point
-        self.cooperation = {}
+
+        #self._resource_count = 1 #random.choice([0,5])
+        self._pos_resource = None # potential resource location
+        self._pos_drop_point = None # they shall discover the drop point
+
+        self._cooperation = {}
+        self._capacity = random.choice([1,2,3])
     
     def step(self):
         super(AgentCoopa,self).step()
@@ -26,23 +31,23 @@ class AgentCoopa(AgentBasic):
         if type(message) is Message:
             print('-- Message Received from Agent# {}'.format(message.sender.unique_id))
 
-            if message.sender.unique_id not in self.cooperation:
+            if message.sender.unique_id not in self._cooperation:
                 cooperation = Cooperation(message.sender)
                 cooperation.set_trust(5) #initial trust, migh be reduced later
                 cooperation.add_message(message)
-                self.cooperation[message.sender.unique_id] = cooperation
-                self.pos_resource = [message.resource_x, message.resource_y]
-            elif self.cooperation[message.sender.unique_id].trust > 3: #ignore non trust worthy
-                self.pos_resource = [message.resource_x, message.resource_y]
+                self._cooperation[message.sender.unique_id] = cooperation
+                self._pos_resource = [message.resource_x, message.resource_y]
+            elif self._cooperation[message.sender.unique_id].trust > 3: #ignore non trust worthy
+                self._pos_resource = [message.resource_x, message.resource_y]
 
 
 
     def move(self):
-        if self.pos_resource is None:
+        if self._pos_resource is None:
             super(AgentCoopa,self).move()
         else:
             if random.randrange(1,100) > 50:
-                self._move_towards_point(self.pos_resource)
+                self._move_towards_point(self._pos_resource)
             else:
                 super(AgentCoopa,self).move()
 
@@ -76,7 +81,7 @@ class AgentCoopa(AgentBasic):
 
     def pick_resource(self):
         #print('Coopa.pickresource()')
-        resource_before = self.resource_count
+        resource_before = self._resource_count
         super(AgentCoopa,self).pick_resource()
-        if self.resource_count > resource_before: #resource found
+        if self._resource_count > resource_before: #resource found
             self.model.message_dispatcher.broadcast(Message(self, self.pos[0], self.pos[1]))
