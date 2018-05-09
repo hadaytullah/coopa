@@ -8,7 +8,7 @@ import random
 class AgentBasic(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.wealth = 1 #random.choice([0,5])
+        self.resource_count = 1 #random.choice([0,5])
 
     def step(self):
         self.move()
@@ -24,16 +24,16 @@ class AgentBasic(Agent):
         self.model.grid.move_agent(self, new_position)
 
     def pick_resource(self):
-        print('AgentBasic#%s, before wealth, %i' %(self.unique_id,self.wealth))
+        print('AgentBasic#%s, before resource_count, %i' %(self.unique_id,self.resource_count))
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         if len(cellmates) > 1:
             other = random.choice(cellmates)
             if type(other) is Resource:
-                other.wealth -= 1
-                self.wealth += 1
+                other.resource_count -= 1
+                self.resource_count += 1
                 self.model.grid.remove_agent(other)
             elif type(other) is DropPoint:
-                other.wealth += self.wealth
-                self.wealth = 0
+                other.resource_count += self.resource_count
+                self.resource_count = 0
 
-        print('AgentBasic#%s, after wealth, %i' %(self.unique_id,self.wealth))
+        print('AgentBasic#%s, after resource_count, %i' %(self.unique_id,self.resource_count))

@@ -5,8 +5,8 @@ import random
 class DropPoint(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.wealth = 0
+        self.resource_count = 0
 
     def step(self):
-        pint('drop point has resources: %s'.format(self.wealth))
+        pint('drop point has resources: %s'.format(self.resource_count))
 

@@ -4,7 +4,6 @@ from resource import Resource
 from drop_point import DropPoint
 import random
 
-# TODO: add cooperation awareness
 class MessageDispatcher:
 
     def __init__(self):

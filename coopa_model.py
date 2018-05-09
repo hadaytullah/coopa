@@ -10,8 +10,8 @@ from message_dispatcher import MessageDispatcher
 import random
 
 def compute_gini(model):
-    agent_wealths = [agent.wealth for agent in model.schedule.agents]
-    x = sorted(agent_wealths)
+    agent_resources = [agent.resource_count for agent in model.schedule.agents]
+    x = sorted(agent_resources)
     N = model.num_agents
     B = sum( xi * (N-i) for i,xi in enumerate(x) ) / (N*sum(x))
     return (1 + (1/N) - 2*B)
@@ -57,7 +57,7 @@ class CoopaModel(Model):
         #data collector, don't really know how it works yet
         self.datacollector = DataCollector(
             model_reporters={"Gini": compute_gini},  # A function to call
-            agent_reporters={"Wealth": "wealth"})  # An agent attribute
+            agent_reporters={"Resource": "resource_count"})  # An agent attribute
             
     def step(self):
         self.datacollector.collect(self)

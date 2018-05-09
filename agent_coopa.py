@@ -11,7 +11,7 @@ class AgentCoopa(AgentBasic):
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.wealth = 1 #random.choice([0,5])
+        self.resource_count = 1 #random.choice([0,5])
         model.message_dispatcher.register(self)
         self.pos_resource = None # potential resource location
         self.pos_drop_point = None # they shall discover the drop point
@@ -76,7 +76,7 @@ class AgentCoopa(AgentBasic):
 
     def pick_resource(self):
         #print('Coopa.pickresource()')
-        wealth_before = self.wealth
+        resource_before = self.resource_count
         super(AgentCoopa,self).pick_resource()
-        if self.wealth > wealth_before: #resource found
+        if self.resource_count > resource_before: #resource found
             self.model.message_dispatcher.broadcast(Message(self, self.pos[0], self.pos[1]))
