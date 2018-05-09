@@ -18,5 +18,5 @@ class DropPoint(Agent):
         self._resource_count-=num
 
     def step(self):
-        pint('drop point has resources: %s'.format(self.resource_count))
+        print('drop point has resources: {}'.format(self.resource_count))
 

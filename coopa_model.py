@@ -27,8 +27,21 @@ class CoopaModel(Model):
         self.message_dispatcher = MessageDispatcher()
         #self.agents = []
         # adding a single drop point
-        drop_point = DropPoint(1, self)
-        self.grid.place_agent(drop_point, (0,0))
+
+        #self.grid.place_agent(DropPoint(1, self), (0,0))
+        #self.grid.place_agent(DropPoint(1, self), (0,height-1))
+        #self.grid.place_agent(DropPoint(1, self), (width-1,0))
+        #self.grid.place_agent(DropPoint(1, self), (width-1,height-1))
+
+        # adding many drop points, will fixed and few later
+        for i in range(10):
+            drop_point = DropPoint(i, self)
+            self.schedule.add(drop_point)
+
+            #add to grid
+            x = random.randrange(self.grid.width)
+            y = random.randrange(self.grid.height)
+            self.grid.place_agent(drop_point, (x,y)) # agent.pos has (x,y)
 
         # adding initial resources
         for i in range(self.num_resources):

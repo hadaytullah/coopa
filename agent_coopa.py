@@ -21,6 +21,23 @@ class AgentCoopa(AgentBasic):
 
         self._cooperation = {}
         self._capacity = random.choice([1,2,3])
+
+        self._goals = {
+            'random':{
+                'name' : 'random',
+                'pos' : None # potential resource location
+            },
+            'find_resource':{
+                'name' : 'find_resource',
+                'pos' : None # potential resource location
+            },
+            'find_drop_point':{
+                'name' : 'find_drop_point',
+                'pos' : None # potential drop point location
+
+            }
+        }
+        self._current_goal = self._goals['find_resource']
     
     def step(self):
         super(AgentCoopa,self).step()
@@ -36,20 +53,29 @@ class AgentCoopa(AgentBasic):
                 cooperation.set_trust(5) #initial trust, migh be reduced later
                 cooperation.add_message(message)
                 self._cooperation[message.sender.unique_id] = cooperation
-                self._pos_resource = [message.resource_x, message.resource_y]
+                self._update_goals(message)
+                #self._pos_resource = [message.resource_x, message.resource_y]
+                #self._goals['find_resource']['pos'] = [message.resource_x, message.resource_y]
             elif self._cooperation[message.sender.unique_id].trust > 3: #ignore non trust worthy
-                self._pos_resource = [message.resource_x, message.resource_y]
+                #self._pos_resource = [message.resource_x, message.resource_y]
+                #self._goals['find_resource']['pos'] = [message.resource_x, message.resource_y]
+                self._update_goals(message)
 
+    def _update_goals(self, message):
+        if message.position_of is 'resource':
+            self._goals['find_resource']['pos'] = [message.x, message.y]
+        elif message.position_of is 'drop_point':
+            self._goals['find_drop_point']['pos'] = [message.x, message.y]
 
 
     def move(self):
-        if self._pos_resource is None:
-            super(AgentCoopa,self).move()
+        if self._current_goal['name'] is 'find_resource' and random.randrange(1,100) < 50:
+            if self._current_goal['pos'] is not None:
+                self._move_towards_point (self._current_goal['pos'])
+        elif self._current_goal['name'] is 'find_drop_point' and self._current_goal['pos'] is not None:
+            self._move_towards_point (self._current_goal['pos'])
         else:
-            if random.randrange(1,100) > 50:
-                self._move_towards_point(self._pos_resource)
-            else:
-                super(AgentCoopa,self).move()
+            super(AgentCoopa,self).move()
 
     def _move_towards_point(self, point):
         print('-- destination point {}'.format(point))
@@ -79,9 +105,32 @@ class AgentCoopa(AgentBasic):
         print('new position for agent#{}: {}'.format(self.unique_id, new_position))
         self.model.grid.move_agent(self, new_position)
 
-    def pick_resource(self):
+    def pick_resource(self): #default GOAL: find resources and pick
         #print('Coopa.pickresource()')
-        resource_before = self._resource_count
-        super(AgentCoopa,self).pick_resource()
-        if self._resource_count > resource_before: #resource found
-            self.model.message_dispatcher.broadcast(Message(self, self.pos[0], self.pos[1]))
+        #resource_before = self._resource_count
+        print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
+        cellmates = self.model.grid.get_cell_list_contents([self.pos])
+        if len(cellmates) > 1:
+            other = random.choice(cellmates)
+            if type(other) is Resource:
+                #TODO: abstract out the cooperation and goal awareness
+                self.model.message_dispatcher.broadcast(Message(self, 'resource', self.pos[0], self.pos[1]))
+                if self._resource_count < self._capacity:
+                    self._resource_count += 1
+                    self.model.grid.remove_agent(other)
+                else: #GOAL changed: look for drop point and not resources
+                    self._current_goal = self._goals['find_drop_point']
+
+            elif type(other) is DropPoint:
+                print('-- Drop point found -------------------')
+                self.model.message_dispatcher.broadcast(Message(self, 'drop_point', self.pos[0], self.pos[1]))
+                other.add_resources(self._resource_count)
+                self._resource_count = 0
+                #GOAL changed: look for drop point and not resources
+                self._goals['find_resource']['pos'] = None
+                self._current_goal = self._goals['find_resource']
+
+        print('AgentCoopa #%s, after resource_count, %i' %(self.unique_id,self._resource_count))
+
+        #if self._resource_count > resource_before: #resource found
+
