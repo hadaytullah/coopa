@@ -17,7 +17,7 @@ class Resource(Agent):
     def remove_resources (self, num):
         self._resource_count-=num
 
-    def step(self):
-        pass
+    #def step(self):
+    #    pass
         #pint('drop point has resources: %s'.format(self.resource_count))
 

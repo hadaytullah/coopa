@@ -29,11 +29,31 @@ class AgentBasic(Agent):
         #moore: up,down,left,right and diagonal movements
         #von neumann: up, down, left, right
         # include_center = false, mean do not consider its current location
-        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
-        new_position = random.choice(possible_steps)
-        self.model.grid.move_agent(self, new_position)
+        possible_steps = []
+        for cell in self.model.grid.iter_neighborhood(self.pos, moore=True):
+            #print('cell is empty {}'.format(cell))
+            if self.model.grid.is_cell_empty(cell):
+                print('cell is empty {}'.format(cell))
+                possible_steps.append(cell)
+        if len(possible_steps) > 0:
+            new_position = random.choice(possible_steps)
+            self.model.grid.move_agent(self, new_position)
 
     def process(self):
+        print('AgentBasic#%s, before resource_count, %i' %(self.unique_id,self._resource_count))
+        #cellmates = self.model.grid.get_cell_list_contents([self.pos])
+        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=1)
+        for neighbor in neighbors:
+            if type(neighbor) is Resource:
+                self._resource_count += 1
+                self.model.grid.remove_agent(neighbor)
+            elif type(neighbor) is DropPoint:
+                neighbor.add_resources(self._resource_count)
+                self._resource_count = 0
+
+        print('AgentBasic#%s, after resource_count, %i' %(self.unique_id,self._resource_count))
+
+    def process_(self):
         print('AgentBasic#%s, before resource_count, %i' %(self.unique_id,self._resource_count))
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         if len(cellmates) > 1:

@@ -4,7 +4,7 @@ from agent_coopa import AgentCoopa
 from resource import Resource
 from drop_point import DropPoint
 from mesa.time import RandomActivation
-from mesa.space import MultiGrid
+from mesa.space import SingleGrid
 from mesa.datacollection import DataCollector
 from message_dispatcher import MessageDispatcher
 from wall import Wall
@@ -24,7 +24,7 @@ class CoopaModel(Model):
         self.running = True
         self.num_agents = N
         self.num_resources = 20
-        self.grid = MultiGrid(width, height, True) #True=toroidal
+        self.grid = SingleGrid(width, height, False) #True=toroidal
         self.schedule = RandomActivation(self)
         self.message_dispatcher = MessageDispatcher()
         self.layout = Layout()
@@ -41,32 +41,37 @@ class CoopaModel(Model):
         for i in range(10):
             drop_point = DropPoint(i, self)
             self.schedule.add(drop_point)
+            self.grid.position_agent(drop_point)
 
             #add to grid
-            x = random.randrange(self.grid.width)
-            y = random.randrange(self.grid.height)
-            self.grid.place_agent(drop_point, (x,y)) # agent.pos has (x,y)
+            #x = random.randrange(self.grid.width)
+            #y = random.randrange(self.grid.height)
+            #self.grid.place_agent(drop_point, (x,y)) # agent.pos has (x,y)
+            #self.grid.move_to_empty(drop_point)
 
         # adding initial resources
         for i in range(self.num_resources):
             resource = Resource(i, self)
             self.schedule.add(resource)
-
-            #add to grid
-            x = random.randrange(self.grid.width)
-            y = random.randrange(self.grid.height)
-            self.grid.place_agent(resource, (x,y)) # agent.pos has (x,y)
+            self.grid.position_agent(resource)
+#            #add to grid
+#            x = random.randrange(self.grid.width)
+#            y = random.randrange(self.grid.height)
+#            self.grid.place_agent(resource, (x,y)) # agent.pos has (x,y)
+#            self.grid.move_to_empty(resource)
 
         # the mighty agents arrive
         for i in range(self.num_agents):
             a = AgentCoopa(i, self)
             #self.agents.add(a)
             self.schedule.add(a)
+            self.grid.position_agent(a)
             
-            #add to grid
-            x = random.randrange(self.grid.width)
-            y = random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x,y)) # agent.pos has (x,y)
+#            #add to grid
+#            x = random.randrange(self.grid.width)
+#            y = random.randrange(self.grid.height)
+#            self.grid.place_agent(a, (x,y)) # agent.pos has (x,y)
+#            self.grid.move_to_empty(a)
 
         #let messaging bus know about agents
         #self.message_dispatcher.set_agents(self.agents)
@@ -75,6 +80,7 @@ class CoopaModel(Model):
         self.datacollector = DataCollector(
             model_reporters={"Gini": compute_gini},  # A function to call
             agent_reporters={"Resource": "resource_count"})  # An agent attribute
+
             
     def step(self):
         self.datacollector.collect(self)
