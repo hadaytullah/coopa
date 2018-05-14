@@ -69,13 +69,23 @@ class AgentCoopa(AgentBasic):
 
 
     def move(self):
-        if self._current_goal['name'] is 'find_resource' and random.randrange(1,100) < 50:
-            if self._current_goal['pos'] is not None:
-                self._move_towards_point (self._current_goal['pos'])
-        elif self._current_goal['name'] is 'find_drop_point' and self._current_goal['pos'] is not None:
+        if self._current_goal is not None and self._current_goal['pos'] is not None:
             self._move_towards_point (self._current_goal['pos'])
+            if self.pos[0] is self._current_goal['pos'][0] and self.pos[1] is self._current_goal['pos'][1]:
+                if self._current_goal['name'] is 'find_resource':
+                    self._current_goal['pos'] = None
+                    print ('------- pos reset ------')
         else:
             super(AgentCoopa,self).move()
+
+
+
+#        if self._current_goal['name'] is 'find_resource' and random.randrange(1,100) < 50:
+#                self._move_towards_point (self._current_goal['pos'])
+#        elif self._current_goal['name'] is 'find_drop_point' and self._current_goal['pos'] is not None:
+#            self._move_towards_point (self._current_goal['pos'])
+#        else:
+#            super(AgentCoopa,self).move()
 
     def _move_towards_point(self, point):
         print('-- destination point {}'.format(point))
@@ -105,7 +115,7 @@ class AgentCoopa(AgentBasic):
         print('new position for agent#{}: {}'.format(self.unique_id, new_position))
         self.model.grid.move_agent(self, new_position)
 
-    def pick_resource(self): #default GOAL: find resources and pick
+    def process(self): #default GOAL: find resources and pick
         #print('Coopa.pickresource()')
         #resource_before = self._resource_count
         print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))

@@ -22,7 +22,7 @@ class AgentBasic(Agent):
 
     def step(self):
         self.move()
-        self.pick_resource()
+        self.process()
 
 
     def move(self):
@@ -33,7 +33,7 @@ class AgentBasic(Agent):
         new_position = random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
 
-    def pick_resource(self):
+    def process(self):
         print('AgentBasic#%s, before resource_count, %i' %(self.unique_id,self._resource_count))
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         if len(cellmates) > 1:
