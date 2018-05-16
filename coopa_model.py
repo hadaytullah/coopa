@@ -1,15 +1,12 @@
 from mesa import Model
-from agent_basic import AgentBasic
-from agent_coopa import AgentCoopa
 from resource import Resource
 from drop_point import DropPoint
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 from mesa.datacollection import DataCollector
 from message_dispatcher import MessageDispatcher
-from wall import Wall
-import random
 from layout import Layout
+from ui_styling import AGENT_TYPES
 
 def compute_gini(model):
     agent_resources = [agent.resource_count for agent in model.schedule.agents]
@@ -20,7 +17,7 @@ def compute_gini(model):
 
 class CoopaModel(Model):
     """A model with some number of agents."""
-    def __init__(self, N, width, height):
+    def __init__(self, N, width, height, agent_type):
         self.running = True
         self.num_agents = N
         self.num_resources = 20
@@ -28,6 +25,7 @@ class CoopaModel(Model):
         self.schedule = RandomActivation(self)
         self.message_dispatcher = MessageDispatcher()
         self.layout = Layout()
+        self.agent_type = AGENT_TYPES[agent_type]
         #self.agents = []
         # adding a single drop point
 
@@ -62,7 +60,7 @@ class CoopaModel(Model):
 
         # the mighty agents arrive
         for i in range(self.num_agents):
-            a = AgentCoopa(i, self)
+            a = self.agent_type(i, self)
             #self.agents.add(a)
             self.schedule.add(a)
             self.grid.position_agent(a)
