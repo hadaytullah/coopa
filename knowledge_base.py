@@ -6,17 +6,32 @@ class KnowledgeBase:
         self._goals = {
             'random':{
                 'name' : 'random',
-                'pos' : None # potential resource location
+                #'pos' : None # potential resource location
+                'next_goal' : 'find_resource'
             },
             'find_resource':{
                 'name' : 'find_resource',
-                'pos' : None # potential resource location
+                #'pos' : None, # potential resource location
+                'next_goal' : 'find_drop_point'
             },
+            # 'pick_resource':{
+            #     'name' : 'pick_resource',
+            #     'next_goal' : 'find_drop_point'
+            # },
             'find_drop_point':{
                 'name' : 'find_drop_point',
-                'pos' : None # potential drop point location
-
+                #'pos' : None # potential drop point location
+                'next_goal' : 'find_resource'
+            },
+            'find_recharge_point':{
+                'name' : 'find_recharge_point',
+                'next_goal' : 'recharge'
+            },
+            'recharge':{
+                'name' : 'recharge',
+                'next_goal' : 'find_resource'
             }
+
         }
 
         self._domain = {
@@ -72,12 +87,30 @@ class KnowledgeBase:
             }
         }
         
+        self._resource_positions = []
+
+        self._drop_point_positions = []
+
+        self._recharge_point_positions = []
+        
     @property
-    def goals(self, agent):
+    def goals(self):
         return self._goals
 
     @property
-    def domain(self, agent):
+    def domain(self):
         return self._domain
+
+    @property
+    def resource_positions(self):
+        return self._resource_positions
+
+    @property
+    def drop_point_positions(self):
+        return self._drop_point_positions
+    
+    @property
+    def recharge_point_positions(self):
+        return self._recharge_point_positions
 
         
