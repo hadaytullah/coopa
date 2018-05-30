@@ -30,6 +30,17 @@ class Awareness:
         if self._current_goal['name'] is 'find_resource':
             if self._agent.resource_count >= self._agent.capacity:
                 self._current_goal = self._knowledge_base.goals[self._knowledge_base.goals[self._current_goal['name']]['next_goal']]
+
+            elif self._agent.target_pos is not None:
+                if self._agent.pos[0] is self._agent.target_pos[0] and self._agent.pos[1] is self._agent.target_pos[1]:
+                    # the agent has reached the location point it was looking for, so move to the next goal or reset
+                    if self._agent.resource_count >= self._agent.capacity:
+                        self._current_goal = self._knowledge_base.goals[self._knowledge_base.goals[self._current_goal['name']]['next_goal']]
+                    else:
+                        #reset, or choose some other point wise, Have to figure out 'Wisely' part :)
+                        self._agent.set_target_position(None)
+                 #_agent._current_goal['pos'] = None
+                 #print ('------- pos reset ------')
             else:
                 length_resource_positions = len(self._knowledge_base.resource_positions)
                 if length_resource_positions > 0:
@@ -45,6 +56,7 @@ class Awareness:
                     break
             if drop_point is not None:#drop point found, move on to the next goal
                 self._current_goal = self._knowledge_base.goals[self._knowledge_base.goals[self._current_goal['name']]['next_goal']]
+                self._agent.set_target_position (None)
             else: #keep looking, a little help from knowledge base
                 length_drop_point_positions = len(self._knowledge_base.drop_point_positions)
                 if length_drop_point_positions > 0:
@@ -52,10 +64,7 @@ class Awareness:
                     self._agent.set_target_position (self._knowledge_base.drop_point_positions[length_drop_point_positions-1])
             
         # print('AgentCoopa #%s, after resource_count, %i' %(self.unique_id,self._resource_count))
-        # if _agent.pos[0] is _agent._current_goal['pos'][0] and _agent.pos[1] is _agent._current_goal['pos'][1]:
-        #     if _agent._current_goal['name'] is 'find_resource':
-        #         _agent._current_goal['pos'] = None
-        #         print ('------- pos reset ------')
+        # 
     
     def _cooperation_awareness_step(self):
         neighbors = self._agent.model.grid.get_neighbors(self._agent.pos, moore=True, include_center=False, radius=1)
