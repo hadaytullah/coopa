@@ -14,6 +14,7 @@ from mesa.space import ContinuousSpace
 from mesa.time import SimultaneousActivation
 
 from .boid import Boid
+from .space import FixedContinuousSpace
 
 
 class BoidModel(Model):
@@ -48,7 +49,7 @@ class BoidModel(Model):
         self.speed = speed
         self.separation = separation
         self.schedule = SimultaneousActivation(self)
-        self.space = ContinuousSpace(width, height, True)
+        self.space = FixedContinuousSpace(width, height, True)
         self.factors = dict(cohere=cohere, separate=separate, match=match)
         self.make_agents()
         self.running = True
@@ -58,10 +59,11 @@ class BoidModel(Model):
         Create self.population agents, with random positions and starting headings.
         '''
         for i in range(self.population):
-            x = random.random() * self.space.x_max
-            y = random.random() * self.space.y_max
+            x = self.space.x_min + (random.random() * (self.space.x_max - self.space.x_min))
+            y = self.space.y_min + (random.random() * (self.space.y_max - self.space.y_min))
             pos = np.array((x, y))
-            velocity = np.random.random(2) * 2 - 1
+            angle = np.random.random() * np.pi * 2
+            velocity = np.array((np.cos(angle), np.sin(angle)))
             boid = Boid(i, self, pos, self.speed, velocity, self.vision,
                         self.separation, **self.factors)
             self.space.place_agent(boid, pos)
