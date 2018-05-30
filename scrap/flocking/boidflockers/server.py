@@ -16,7 +16,7 @@ model_params = {
     "speed": 1,
     "vision": 10,
     "separation": 5,
-    "cohere": 0.3,
+    "cohere": 0.5,
     "separate": 2.0,
     "match": 4.0
 }

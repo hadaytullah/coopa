@@ -45,6 +45,7 @@ class Boid(Agent):
         self.cohere_factor = cohere
         self.separate_factor = separate
         self.match_factor = match
+        self.max_force = 0.2
 
     def cohere(self, neighbors):
         '''
@@ -53,8 +54,12 @@ class Boid(Agent):
         cohere = np.zeros(2)
         if neighbors:
             for neighbor in neighbors:
+                #cohere += neighbor.pos
                 cohere += self.model.space.get_heading(self.pos, neighbor.pos)
             cohere /= len(neighbors)
+        #cohere = self.model.space.get_heading(self.pos, cohere)
+        #cohere /= np.linalg.norm(cohere)
+        cohere *= self.max_force
         return cohere
 
     def separate(self, neighbors):
@@ -67,6 +72,8 @@ class Boid(Agent):
         for other in them:
             if self.model.space.get_distance(me, other) < self.separation:
                 separation_vector -= self.model.space.get_heading(me, other)
+        #separation_vector /= np.linalg.norm(separation_vector)
+        separation_vector *= self.max_force
         return separation_vector
 
     def match_heading(self, neighbors):
@@ -78,6 +85,8 @@ class Boid(Agent):
             for neighbor in neighbors:
                 match_vector += neighbor.velocity
             match_vector /= len(neighbors)
+        #match_vector /= np.linalg.norm(match_vector)
+        match_vector *= self.max_force
         return match_vector
 
     def step(self):
@@ -89,7 +98,7 @@ class Boid(Agent):
         self.new_velocity = self.velocity +\
             (self.cohere(neighbors) * self.cohere_factor +
              self.separate(neighbors) * self.separate_factor +
-             self.match_heading(neighbors) * self.match_factor) / 2
+             self.match_heading(neighbors) * self.match_factor)
         self.new_velocity /= np.linalg.norm(self.new_velocity)
         self.new_pos = self.pos + self.new_velocity * self.speed
 
