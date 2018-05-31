@@ -17,8 +17,8 @@ class Boid(Agent):
     define their movement. Separation is their desired minimum distance from
     any other Boid.
     '''
-    def __init__(self, unique_id, model, pos, speed, velocity, vision,
-            separation, cohere=0.025, separate=0.25, match=0.04):
+    def __init__(self, unique_id, model, pos, speed, velocity, vision, separation,
+                 cohere=0.025, separate=0.25, match=0.04, max_force=0.05):
         '''
         Create a new Boid flocker agent.
 
@@ -32,6 +32,7 @@ class Boid(Agent):
             cohere: the relative importance of matching neighbors' positions
             separate: the relative importance of avoiding close neighbors
             match: the relative importance of matching neighbors' headings
+            max_force: the maximum steering force for coherence, separation and alignment (match).
 
         '''
         super().__init__(unique_id, model)
@@ -45,7 +46,7 @@ class Boid(Agent):
         self.cohere_factor = cohere
         self.separate_factor = separate
         self.match_factor = match
-        self.max_force = 0.2
+        self.max_force = max_force
 
     def cohere(self, neighbors):
         '''
@@ -58,7 +59,8 @@ class Boid(Agent):
                 cohere += self.model.space.get_heading(self.pos, neighbor.pos)
             cohere /= len(neighbors)
         #cohere = self.model.space.get_heading(self.pos, cohere)
-        #cohere /= np.linalg.norm(cohere)
+        if np.linalg.norm(cohere) > 0.0:
+            cohere /= np.linalg.norm(cohere)
         cohere *= self.max_force
         return cohere
 
@@ -72,7 +74,8 @@ class Boid(Agent):
         for other in them:
             if self.model.space.get_distance(me, other) < self.separation:
                 separation_vector -= self.model.space.get_heading(me, other)
-        #separation_vector /= np.linalg.norm(separation_vector)
+        if np.linalg.norm(separation_vector) > 0.0:
+            separation_vector /= np.linalg.norm(separation_vector)
         separation_vector *= self.max_force
         return separation_vector
 
@@ -85,7 +88,8 @@ class Boid(Agent):
             for neighbor in neighbors:
                 match_vector += neighbor.velocity
             match_vector /= len(neighbors)
-        #match_vector /= np.linalg.norm(match_vector)
+        if np.linalg.norm(match_vector) > 0.0:
+            match_vector /= np.linalg.norm(match_vector)
         match_vector *= self.max_force
         return match_vector
 
