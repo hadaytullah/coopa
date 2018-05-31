@@ -6,6 +6,7 @@ from drop_point import DropPoint
 from message import Message
 from cooperation import Cooperation
 from knowledge_base import KnowledgeBase
+import math
 import random
 import pdb
 
@@ -18,12 +19,75 @@ class Awareness:
         self._cooperation = {}
         self._knowledge_base = KnowledgeBase()
         self._current_goal = self._knowledge_base.goals['find_resource']
-    
+        self._clock = 0
+        
+        self._time_resource_found = 0
+        self._agent_resource_count_history = self._agent.resource_count
+
     def step(self):
+        self._clock += 1
+
+        self._time_awareness_step()
         self._goal_awareness_step() 
         self._cooperation_awareness_step()
+        self._domain_awareness_step()
         #self._context_awareness_step()
-    
+
+    def _time_awareness_step(self):
+        #TODO: do it properly. This is a quick solution to facilitate domain awareness
+        if self._agent.resource_count > self._agent_resource_count_history:
+            # a resource has been found, take a note of it
+            self._agent_resource_count_history = self._agent.resource_count
+            self._time_resource_found = self._clock
+        
+
+    def _domain_awareness_step(self):
+        # domain strategy: typically changing the room or 
+        # going far from current location improves the 
+        # chances to find interesting things
+        if self._clock - self._time_resource_found > 50: 
+            print("It has been long time since last resource was discovered.")
+            #long time no (resource) see
+            #find a point a reasonable distance, probably in next room
+            pos_x = int(self._agent.pos[0] - (self._agent.model.grid.width/3))
+            pos_y = int(self._agent.pos[1] - (self._agent.model.grid.height/3))
+            if pos_x < 0:
+                pos_x = int(self._agent.pos[0] + (self._agent.model.grid.width/3))
+            if pos_y < 0:
+                pos_y = int(self._agent.pos[1] + (self._agent.model.grid.height/3))
+            
+            point = [pos_x, pos_y]
+            if self._agent.model.grid.out_of_bounds(point) is False and self._agent.model.grid.is_cell_empty(point):
+                self._agent.set_target_position(point)
+                print('1.The new point is {}'.format(point))
+            else:
+                for i in range(int(self._agent.model.grid.width/3)):
+                    right_pos_x = int(pos_x + i)
+                    left_pos_x = int(pos_x - i)
+                    up_pos_y = int(pos_y + i)
+                    down_pos_y = int(pos_y - i)
+
+                    points = [
+                        [right_pos_x, pos_y],
+                        [left_pos_x, pos_y],
+                        [pos_x, up_pos_y],
+                        [pos_x, down_pos_y]
+                    ]
+                    point_found = False
+                    for point in points:
+                        if self._agent.model.grid.out_of_bounds(point) is False and self._agent.model.grid.is_cell_empty(point):
+                            self._agent.set_target_position(point)
+                            point_found = True
+                            print('2.The new point is {}'.format(point))
+                            break
+                    
+                    if point_found:
+                        break
+                        
+        #domain strategy: typically no resources in corridors
+
+        #domain strategy: 
+
     def _goal_awareness_step(self):
         print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal, self._agent.unique_id,self._agent.resource_count))
 

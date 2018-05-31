@@ -20,7 +20,7 @@ def test2():
 
 
 start_visualization_server()
-test2()
+#test2()
 
 
 #def test1():
