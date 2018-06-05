@@ -7,6 +7,7 @@ from mesa.datacollection import DataCollector
 from message_dispatcher import MessageDispatcher
 from layout import Layout
 from ui_styling import AGENT_TYPES
+from recharge_point import RechargePoint
 
 def compute_gini(model):
     agent_resources = [agent.resource_count for agent in model.schedule.agents]
@@ -35,11 +36,20 @@ class CoopaModel(Model):
         #self.grid.place_agent(DropPoint(1, self), (width-1,height-1))
 
         self.layout.draw(self.grid)
+
+        drop_point = DropPoint(1, self)
+        #self.schedule.add(drop_point)
+        self.grid.place_agent(drop_point, (5,5))
+
+        recharge_point = RechargePoint(1, self)
+        #self.schedule.add(drop_point)
+        self.grid.place_agent(recharge_point, (55,5))
+
         # adding many drop points, will fixed and few later
-        for i in range(10):
-            drop_point = DropPoint(i, self)
-            self.schedule.add(drop_point)
-            self.grid.position_agent(drop_point)
+        # for i in range(10):
+        #     drop_point = DropPoint(i, self)
+        #     self.schedule.add(drop_point)
+        #     self.grid.position_agent(drop_point)
 
             #add to grid
             #x = random.randrange(self.grid.width)
