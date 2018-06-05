@@ -44,7 +44,10 @@ class AgentCoopa(AgentBasic):
 
         #self._current_goal = self._goals['find_resource']
         #self._current_goal = self._knowledge_base.goals['random']
-        self._target_pos = None 
+        self._target_pos = None
+
+        # resource
+        self._battery_power = 320 # each step will consume one unit, grid is 80 cells 
     
     def step(self):
         self._awareness.step()
@@ -65,14 +68,19 @@ class AgentCoopa(AgentBasic):
     def capacity(self):
         return self._capacity
     
+    @property
+    def battery_power(self):
+        return self._battery_power
+
     def move(self):
+        
+        self._battery_power -= 1 # every move costs one battery power unit
+
         #if self._current_goal is not None and self._current_goal['pos'] is not None:
         if self._target_pos is not None:
             self._move_towards_point (self._target_pos)
         else:
             super(AgentCoopa,self).move()
-
-
 
 #        if self._current_goal['name'] is 'find_resource' and random.randrange(1,100) < 50:
 #                self._move_towards_point (self._current_goal['pos'])

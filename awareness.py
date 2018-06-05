@@ -21,17 +21,26 @@ class Awareness:
         self._current_goal = self._knowledge_base.goals['find_resource']
         self._clock = 0
         
-        self._time_resource_found = 0
+        # time awareness
+        self._time_resource_found = self._clock
         self._agent_resource_count_history = self._agent.resource_count
+
+        # domain awareness
+        self._time_domain_strategy_applied = self._clock
 
     def step(self):
         self._clock += 1
 
         self._time_awareness_step()
         self._goal_awareness_step() 
-        self._cooperation_awareness_step()
+        self._cooperation_awareness_step() #self._context_awareness_step()
         self._domain_awareness_step()
-        #self._context_awareness_step()
+        self._resource_awareness_step()
+        
+    def _resource_awareness_step(self):
+        pass
+        #if self._agent.battery_power < 100: #TODO: take care of constants related to the grid size
+        #    self._current_goal = self._knowledge_base.goals["find_recharge_point"]
 
     def _time_awareness_step(self):
         #TODO: do it properly. This is a quick solution to facilitate domain awareness
@@ -45,7 +54,9 @@ class Awareness:
         # domain strategy: typically changing the room or 
         # going far from current location improves the 
         # chances to find interesting things
-        if self._clock - self._time_resource_found > 50: 
+        # WITH hiatus between applications of the strategy, otherwise, it keeps on chaning the target point
+        if self._clock - self._time_resource_found > 100 and self._clock - self._time_domain_strategy_applied > 140: 
+            self._time_domain_strategy_applied = self._clock
             print("It has been long time since last resource was discovered.")
             #long time no (resource) see
             #find a point a reasonable distance, probably in next room
@@ -126,7 +137,9 @@ class Awareness:
                 if length_drop_point_positions > 0:
                     #pick the last logged position as a target position
                     self._agent.set_target_position (self._knowledge_base.drop_point_positions[length_drop_point_positions-1])
-            
+         
+         #elif self._current_goal['name'] is 'find_recharge_point':  
+         #    pass
         # print('AgentCoopa #%s, after resource_count, %i' %(self.unique_id,self._resource_count))
         # 
     
