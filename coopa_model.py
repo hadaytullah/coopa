@@ -8,6 +8,7 @@ from message_dispatcher import MessageDispatcher
 from layout import Layout
 from ui_styling import AGENT_TYPES
 from recharge_point import RechargePoint
+from context import Context
 
 def compute_gini(model):
     agent_resources = [agent.resource_count for agent in model.schedule.agents]
@@ -21,11 +22,12 @@ class CoopaModel(Model):
     def __init__(self, N, width, height, agent_type):
         self.running = True
         self.num_agents = N
-        self.num_resources = 20
+        #self.num_resources = 20
         self.grid = SingleGrid(width, height, False) #True=toroidal
         self.schedule = RandomActivation(self)
         self.message_dispatcher = MessageDispatcher()
         self.layout = Layout()
+        self._context = Context()
         self.agent_type = AGENT_TYPES[agent_type]
         #self.agents = []
         # adding a single drop point
@@ -45,6 +47,8 @@ class CoopaModel(Model):
         #self.schedule.add(drop_point)
         self.grid.place_agent(recharge_point, (55,5))
 
+        #self._context.place_resources_randomly(self)
+        self._context.place_few_resource_in_all_rooms(self)
         # adding many drop points, will fixed and few later
         # for i in range(10):
         #     drop_point = DropPoint(i, self)
@@ -58,10 +62,10 @@ class CoopaModel(Model):
             #self.grid.move_to_empty(drop_point)
 
         # adding initial resources
-        for i in range(self.num_resources):
-            resource = Resource(i, self)
-            self.schedule.add(resource)
-            self.grid.position_agent(resource)
+        # for i in range(self.num_resources):
+        #     resource = Resource(i, self)
+        #     self.schedule.add(resource)
+        #     self.grid.position_agent(resource)
 #            #add to grid
 #            x = random.randrange(self.grid.width)
 #            y = random.randrange(self.grid.height)
