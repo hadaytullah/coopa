@@ -9,10 +9,14 @@ class AgentBasic(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self._resource_count = 1 #random.choice([0,5])
-
+       
     @property
     def resource_count (self):
         return self._resource_count
+    
+    @property
+    def battery_power (self):
+        return self._battery_power
 
     def add_resources (self, num):
         self._resource_count+=count
@@ -21,8 +25,10 @@ class AgentBasic(Agent):
         self._resource_count-=num
 
     def step(self):
+       
         self.move()
         self.process()
+        
 
 
     def move(self):

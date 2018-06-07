@@ -6,6 +6,7 @@ from message import Message
 from cooperation import Cooperation
 from awareness import Awareness
 from knowledge_base import KnowledgeBase
+from recharge_point import RechargePoint
 import random
 import pdb
 
@@ -45,18 +46,31 @@ class AgentCoopa(AgentBasic):
         #self._current_goal = self._goals['find_resource']
         #self._current_goal = self._knowledge_base.goals['random']
         self._target_pos = None
-
-        # resource
-        self._battery_power = 320 # each step will consume one unit, grid is 80 cells 
+         # resource
+        self._battery_power = 320 # each step will consume one unit
+        self._is_recharging = False
+        
     
     def step(self):
-        self._awareness.step()
-        super(AgentCoopa,self).step()
-        #self.move()
-        #self.pick_resource()
+        if self._battery_power > 0:
+            if self._is_recharging is False:
+                self._awareness.step()
+                super(AgentCoopa,self).step()
+                self._battery_power -= 1
+            else:
+                print ("Agent#{} is recharging.".format(self.unique_id)) 
+                self._recharge_battery()   
+        else:
+            print ("Agent#{} out of power.".format(self.unique_id))
 
     def receive(self, message):
         self._awareness.cooperation_awareness(message) #have to improve this, temporary solution
+    
+    def _recharge_battery(self):
+        self._battery_power += 10
+        if self._battery_power >= 320:
+            self._is_recharging = False
+
     @property
     def target_pos(self):
         return self._target_pos
@@ -73,9 +87,6 @@ class AgentCoopa(AgentBasic):
         return self._battery_power
 
     def move(self):
-        
-        self._battery_power -= 1 # every move costs one battery power unit
-
         #if self._current_goal is not None and self._current_goal['pos'] is not None:
         if self._target_pos is not None:
             self._move_towards_point (self._target_pos)
@@ -125,6 +136,7 @@ class AgentCoopa(AgentBasic):
             self.model.grid.move_agent(self, new_position)
 
     def process(self): #default GOAL: find resources and pick
+        
         #print('Coopa.pickresource()')
         #resource_before = self._resource_count
         #print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
@@ -147,6 +159,13 @@ class AgentCoopa(AgentBasic):
                 #GOAL changed: look for drop point and not resources
                 #self._goals['find_resource']['pos'] = None
                 #self._current_goal = self._goals['find_resource']
+            
+            elif type(neighbor) is RechargePoint:
+                if self._battery_power < 120:
+                    self._is_recharging = True
+                    #self._battery_power = 360
+                    #TODO: the agent shall wait for charging, depending on the amount of recharging required
+                
 
         print('AgentCoopa #%s, after resource_count, %i' %(self.unique_id,self._resource_count))
 

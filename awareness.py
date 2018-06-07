@@ -6,6 +6,7 @@ from drop_point import DropPoint
 from message import Message
 from cooperation import Cooperation
 from knowledge_base import KnowledgeBase
+from recharge_point import RechargePoint
 import math
 import random
 import pdb
@@ -27,7 +28,7 @@ class Awareness:
 
         # domain awareness
         self._time_domain_strategy_applied = self._clock
-
+        
     def step(self):
         self._clock += 1
 
@@ -38,9 +39,11 @@ class Awareness:
         self._resource_awareness_step()
         
     def _resource_awareness_step(self):
-        pass
-        #if self._agent.battery_power < 100: #TODO: take care of constants related to the grid size
-        #    self._current_goal = self._knowledge_base.goals["find_recharge_point"]
+        if self._agent.battery_power < 100: #TODO: take care of constants related to the grid size
+            #find recharge point
+            if len(self._knowledge_base.recharge_point_positions) > 0:
+                self._agent.set_target_position(self._knowledge_base.recharge_point_positions[0])
+                
 
     def _time_awareness_step(self):
         #TODO: do it properly. This is a quick solution to facilitate domain awareness
@@ -150,6 +153,8 @@ class Awareness:
                 self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'resource', self._agent.pos[0], self._agent.pos[1]))
             elif type(neighbor) is DropPoint:
                 self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'drop_point', self._agent.pos[0], self._agent.pos[1]))
+            elif type(neighbor) is RechargePoint:
+                self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'recharge_point', self._agent.pos[0], self._agent.pos[1]))
             #elif type(neighbor) is RechargePoint: #TODO: make recharge point class
                
     def cooperation_awareness(self, message):
@@ -175,3 +180,5 @@ class Awareness:
                 elif message.position_of is 'drop_point':
                     self._knowledge_base.drop_point_positions.append([message.x, message.y])
                     #self._goals['find_drop_point']['pos'] = [message.x, message.y]
+                elif message.position_of is 'recharge_point':
+                    self._knowledge_base.recharge_point_positions.append([message.x, message.y])
