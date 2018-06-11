@@ -5,6 +5,7 @@ from drop_point import DropPoint
 from wall import Wall
 from recharge_point import RechargePoint
 
+
 PORTRAYALS = {
     AgentCoopa: {
         "Color": "blue",
@@ -43,3 +44,24 @@ AGENT_TYPES = {
     'coopa': AgentCoopa,
     'basic': AgentBasic
 }
+
+
+def agent_portrayal(agent):
+    # portrayal = {"Shape": "circle",
+    #             "Filled": "true",
+    #             "Layer": 0,
+    #             "Color": "red",
+    #             "r": 0.5}
+    portrayal = {"Shape": "circle",
+                 "Filled": "true",
+                 "r": 0.5}
+
+    for key, value in PORTRAYALS[type(agent)].items():
+        portrayal[key] = value
+
+    if type(agent) is AgentCoopa:
+        if agent.battery_power == 0:
+            portrayal["Color"] = "grey"
+            portrayal['r'] = 0.7
+
+    return portrayal
