@@ -167,7 +167,7 @@ class AgentCoopa(AgentBasic):
                     #TODO: the agent shall wait for charging, depending on the amount of recharging required
                 
 
-        print('AgentCoopa #%s, after resource_count, %i' %(self.unique_id,self._resource_count))
+        print('AgentCoopa#{}, target:{}, resource_count:{}'.format(self.unique_id,self._target_pos, self._resource_count))
 
     # def process_(self): #default GOAL: find resources and pick
     #     #print('Coopa.pickresource()')
