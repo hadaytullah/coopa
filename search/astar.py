@@ -44,6 +44,7 @@ def get_neighbors(map, pos, moore=True):
             # Passable cells are marked as zeros
             if map[new_pos] == 0:
                 neighbors.append((pos[0] + delta[0], pos[1] + delta[1]))
+    # We could probably shuffle the neighbors to get rid of some deterministic behavior.
     return neighbors
 
 
@@ -110,6 +111,9 @@ def construct_path(start_node):
 
 if __name__ == "__main__":
     map = np.zeros((10, 10))
+    map[3, 3:9] = 1
+    map[3:9, 3] = 1
+    map[3:5, 8] = 1
     print(map)
     start = (0, 0)
     goal = (9, 9)
