@@ -11,7 +11,7 @@ def start_visualization_server():
 
 def test2():
     print('Running Test2...')
-    model = CoopaModel(50, 10, 10)
+    model = CoopaModel(1, 60, 60, agent_type='coopa')
     for i in range(20):
         model.step()
     
@@ -20,7 +20,7 @@ def test2():
 
 
 start_visualization_server()
-#test2()
+# test2()
 
 
 #def test1():
