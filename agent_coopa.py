@@ -7,8 +7,13 @@ from cooperation import Cooperation
 from awareness import Awareness
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
+from wall import Wall
+import search
+
 import random
 import pdb
+import numpy as np
+
 
 class AgentCoopa(AgentBasic):
     """AgentCoopa cooperates with other agents"""
@@ -25,6 +30,10 @@ class AgentCoopa(AgentBasic):
         #self._cooperation = {}
         self._capacity = random.choice([1,2,3])
         self._awareness = Awareness(self)
+
+        # Create map of the environment for the agent, i.e. the agent knows its environment beforehand.
+        self._map = search.build_map(model.grid, [Wall])
+
         #self._knowledge_base = KnowledgeBase()
 
         # self._goals = {
@@ -49,8 +58,7 @@ class AgentCoopa(AgentBasic):
          # resource
         self._battery_power = 320 # each step will consume one unit
         self._is_recharging = False
-        
-    
+
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:
@@ -75,7 +83,8 @@ class AgentCoopa(AgentBasic):
     def target_pos(self):
         return self._target_pos
 
-    def set_target_position (self, position):
+    @target_pos.setter
+    def target_pos(self, position):
         self._target_pos = position
 
     @property
@@ -89,9 +98,9 @@ class AgentCoopa(AgentBasic):
     def move(self):
         #if self._current_goal is not None and self._current_goal['pos'] is not None:
         if self._target_pos is not None:
-            self._move_towards_point (self._target_pos)
+            self._move_towards_point(self._target_pos)
         else:
-            super(AgentCoopa,self).move()
+            super(AgentCoopa, self).move()
 
 #        if self._current_goal['name'] is 'find_resource' and random.randrange(1,100) < 50:
 #                self._move_towards_point (self._current_goal['pos'])

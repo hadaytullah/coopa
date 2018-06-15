@@ -9,17 +9,9 @@ def start_visualization_server():
     server.port = 8521 # The default
     server.launch()
 
-def test2():
-    print('Running Test2...')
-    model = CoopaModel(50, 10, 10)
-    for i in range(20):
-        model.step()
-    
-    plot_cells(model)
-    plot_wealth(model)
 
-
-start_visualization_server()
+if __name__ == "__main__":
+    start_visualization_server()
 #test2()
 
 

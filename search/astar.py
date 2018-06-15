@@ -4,7 +4,7 @@ from search.pq import PQ
 
 import numpy as np
 
-# "Maximum distance" used for f
+# "Maximum distance" used for f.
 MAX_DIST = 100000
 
 # "Maximum" dimensions for the maps, used to derive fast lookups from dictionaries using object hashs.
@@ -58,10 +58,14 @@ def get_h(pos, start, moore=True):
 def astar(map, start, goal, moore=True):
     """A* search.
 
-    :param numpy.ndarray map: Binary map, where zeros are passable cells and ones impassable.
-    :param tuple start: Starting position for the search
-    :param tuple goal: Goal position for the search
+    :param numpy.ndarray map: Binary map, where zeros are passable cells.
+    :param tuple start: Starting cell's coordinate
+    :param tuple goal: Goal cell's coordinate
     :param bool moore: If true, use 8-connected neighborhoods, otherwise use 4-connected neighborhoods.
+
+    :returns:
+        Path (including start and goal cells) to the goal cell as a list of cell coordinates. If the goal cannot be
+        reached, returns an empty list.
     """
 
     # Already looked list
@@ -74,8 +78,13 @@ def astar(map, start, goal, moore=True):
     start_reached = False
 
     while not start_reached:
-        node = open.pop_task()
-        print("Popped node {} with f={}.".format(node.pos, node.f))
+        try:
+            node = open.pop_task()
+            print("Popped node {} with f={}.".format(node.pos, node.f))
+        except KeyError:
+            # If KeyError is raised, the open node list is empty and we cannot find a route to the starting node.
+            return []
+
         # Once we pop the starting node, we know we have the shortest path to it.
         if node.pos == start:
             print("Path to {} found.".format(node.pos))
@@ -112,7 +121,7 @@ def construct_path(start_node):
 if __name__ == "__main__":
     map = np.zeros((10, 10))
     map[3, 3:9] = 1
-    map[3:9, 3] = 1
+    map[1:9, 3] = 1
     map[3:5, 8] = 1
     print(map)
     start = (0, 0)
