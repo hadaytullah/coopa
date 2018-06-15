@@ -203,8 +203,14 @@ class AgentCoopa(AgentBasic):
         #print('Coopa.pickresource()')
         #resource_before = self._resource_count
         #print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
-        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.scan_radius)
-        neighbors = self._filter_nonvisible_neighbors(neighbors)
+        objects = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.scan_radius)
+        visible_objects = self._filter_nonvisible_neighbors(objects)
+
+        neighbors = []
+        for object in visible_objects:
+            if abs(object.pos[0] - self.pos[0]) <= 1 and abs(object.pos[1] - self.pos[1]) <= 1:
+                neighbors.append(object)
+
         for neighbor in neighbors:
             if type(neighbor) is Resource:
                 #TODO: abstract out the cooperation and goal awareness
