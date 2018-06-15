@@ -6,8 +6,9 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from ui_styling import agent_portrayal, PORTRAYALS, AGENT_TYPES
 
-n_slider = UserSettableParameter('slider', "Number of Agents", 3, 2, 200, 1)
-agent_type = UserSettableParameter('choice', 'Agent type', value=sorted(AGENT_TYPES.keys())[0],
+n_slider = UserSettableParameter('slider', "Number of Agents", 1, 1, 200, 1)
+# Reverse to sorted keys to get coopa as the default agent as we are currently building it.
+agent_type = UserSettableParameter('choice', 'Agent type', value=sorted(AGENT_TYPES.keys(), reverse=True)[0],
                                    choices=sorted(AGENT_TYPES.keys()))
 
 

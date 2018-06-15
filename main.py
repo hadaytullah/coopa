@@ -19,9 +19,9 @@ def test2():
     plot_wealth(model)
 
 
-start_visualization_server()
-# test2()
-
+if __name__ == "__main__":
+    start_visualization_server()
+#test2()
 
 #def test1():
 #    print('Running Test1...')
