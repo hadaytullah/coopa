@@ -28,8 +28,6 @@ class AgentBasic(Agent):
        
         self.move()
         self.process()
-        
-
 
     def move(self):
         #moore: up,down,left,right and diagonal movements

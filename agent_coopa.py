@@ -1,3 +1,7 @@
+import random
+import pdb
+import numpy as np
+
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
 from resource import Resource
@@ -10,9 +14,6 @@ from recharge_point import RechargePoint
 from wall import Wall
 import search
 
-import random
-import pdb
-import numpy as np
 
 
 class AgentCoopa(AgentBasic):
