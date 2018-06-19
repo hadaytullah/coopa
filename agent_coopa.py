@@ -13,7 +13,7 @@ from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
 from wall import Wall
 import search
-
+from utils import get_line
 
 
 class AgentCoopa(AgentBasic):
@@ -59,7 +59,9 @@ class AgentCoopa(AgentBasic):
          # resource
         self._battery_power = 320 # each step will consume one unit
         self._is_recharging = False
-
+        self.scan_radius = 5
+        
+    
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:
@@ -145,12 +147,71 @@ class AgentCoopa(AgentBasic):
             #print('new position for agent#{}: {}'.format(self.unique_id, new_position))
             self.model.grid.move_agent(self, new_position)
 
+    def _filter_nonvisible_objects(self, objects):
+        def is_visible(object, walls):
+            line_cells = get_line(object.pos, self.pos)
+            for cell in line_cells:
+                if cell in walls:
+                    return False
+
+            # import numpy as np
+            # length = self.scan_radius * 2 + 1
+            # grid = np.full((length, length), '.')
+            # for cell in line_cells:
+            #     x = self.scan_radius + (cell[0] - self.pos[0])
+            #     y = self.scan_radius + (cell[1] - self.pos[1])
+            #     grid[x][y] = '*'
+            # for wall in walls:
+            #     x = self.scan_radius + (wall[0] - self.pos[0])
+            #     y = self.scan_radius + (wall[1] - self.pos[1])
+            #     grid[x][y] = 'W'
+            # x = self.scan_radius + (object.pos[0] - self.pos[0])
+            # y = self.scan_radius + (object.pos[1] - self.pos[1])
+            # grid[x][y] = 'O'
+            # grid[self.scan_radius][self.scan_radius] = 'A'
+            # for i in range(length):
+            #     row = ''
+            #     for j in range(length):
+            #         row += grid[i][j] + ' '
+            #     print(row)
+            return True
+
+        # Get the walls and non-walls
+        walls = set()
+        others = []
+        for object in objects:
+            if type(object) == Wall:
+                walls.add(object.pos)
+            else:
+                others.append(object)
+
+        # If no walls everything is visible
+        if len(walls) <= 0:
+            return objects
+
+        # Proceed to check which neighbors are visible
+        visible_objects = []
+        for object in others:
+            visible = is_visible(object, walls)
+            if visible:
+                visible_objects.append(object)
+
+        return visible_objects
+
+
     def process(self): #default GOAL: find resources and pick
         
         #print('Coopa.pickresource()')
         #resource_before = self._resource_count
         #print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
-        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=1)
+        objects = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.scan_radius)
+        visible_objects = self._filter_nonvisible_objects(objects)
+
+        neighbors = []
+        for object in visible_objects:
+            if abs(object.pos[0] - self.pos[0]) <= 1 and abs(object.pos[1] - self.pos[1]) <= 1:
+                neighbors.append(object)
+
         for neighbor in neighbors:
             if type(neighbor) is Resource:
                 #TODO: abstract out the cooperation and goal awareness
