@@ -29,11 +29,11 @@ class AgentCoopa(AgentBasic):
         #self._pos_drop_point = None # they shall discover the drop point
 
         #self._cooperation = {}
-        self._capacity = random.choice([1,2,3])
+        self._capacity = random.choice([1, 2, 3])
         self._awareness = Awareness(self)
 
         # Create map of the environment for the agent, i.e. the agent knows its environment beforehand.
-        self._map = search.build_map(model.grid, [Wall])
+        self._map = search.build_map(model.grid, [Wall, DropPoint, RechargePoint, Resource])
 
         #self._knowledge_base = KnowledgeBase()
 
@@ -56,6 +56,7 @@ class AgentCoopa(AgentBasic):
         #self._current_goal = self._goals['find_resource']
         #self._current_goal = self._knowledge_base.goals['random']
         self._target_pos = None
+        self._target_pos_path = []
          # resource
         self._battery_power = 320 # each step will consume one unit
         self._is_recharging = False
@@ -66,13 +67,13 @@ class AgentCoopa(AgentBasic):
         if self._battery_power > 0:
             if self._is_recharging is False:
                 self._awareness.step()
-                super(AgentCoopa,self).step()
+                super(AgentCoopa, self).step()
                 self._battery_power -= 1
             else:
-                print ("Agent#{} is recharging.".format(self.unique_id)) 
+                print("Agent#{} is recharging.".format(self.unique_id))
                 self._recharge_battery()   
         else:
-            print ("Agent#{} out of power.".format(self.unique_id))
+            print("Agent#{} out of power.".format(self.unique_id))
 
     def receive(self, message):
         self._awareness.cooperation_awareness(message) #have to improve this, temporary solution
@@ -81,6 +82,7 @@ class AgentCoopa(AgentBasic):
         self._battery_power += 10
         if self._battery_power >= 320:
             self._is_recharging = False
+            self._target_pos = None
 
     @property
     def target_pos(self):
@@ -89,6 +91,8 @@ class AgentCoopa(AgentBasic):
     @target_pos.setter
     def target_pos(self, position):
         self._target_pos = position
+        if self._target_pos is not None:
+            self._target_pos_path = search.astar(self._map, tuple(self.pos), tuple(self._target_pos))[1:-1]
 
     @property
     def capacity(self):
@@ -101,7 +105,15 @@ class AgentCoopa(AgentBasic):
     def move(self):
         #if self._current_goal is not None and self._current_goal['pos'] is not None:
         if self._target_pos is not None:
-            self._move_towards_point(self._target_pos)
+            if len(self._target_pos_path) > 0:
+                # Consume a movement from the path if it is available
+                new_pos = self._target_pos_path[0]
+                if self.model.grid.is_cell_empty(new_pos):
+                    self.model.grid.move_agent(self, new_pos)
+                    self._target_pos_path = self._target_pos_path[1:]
+                    print("Moving on path to {}, {} steps left.".format(new_pos, len(self._target_pos_path)))
+            else:
+                self._move_towards_point(self._target_pos)
         else:
             super(AgentCoopa, self).move()
 
@@ -238,7 +250,7 @@ class AgentCoopa(AgentBasic):
                     #TODO: the agent shall wait for charging, depending on the amount of recharging required
                 
 
-        print('AgentCoopa#{}, target:{}, resource_count:{}'.format(self.unique_id,self._target_pos, self._resource_count))
+        print(self)
 
     # def process_(self): #default GOAL: find resources and pick
     #     #print('Coopa.pickresource()')
@@ -269,4 +281,10 @@ class AgentCoopa(AgentBasic):
 
     #     #if self._resource_count > resource_before: #resource found
 
-    
+    def __repr__(self):
+        return "{}(#{}, bp:{}, rc:{}, tp:{}, cg:{})".format("AgentCoopa", self.unique_id, self.battery_power,
+                                                            self.resource_count, self.target_pos,
+                                                            self._awareness._current_goal)
+
+    def __str__(self):
+        return self.__repr__()

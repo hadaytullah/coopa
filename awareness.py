@@ -127,9 +127,8 @@ class Awareness:
             #if self._agent.resource_count >= self._agent.capacity:
             #    self._current_goal = self._knowledge_base.goals[self._knowledge_base.goals[self._current_goal['name']]['next_goal']]
             elif len(self._knowledge_base.resource_positions) > 0:
-                length_resource_positions = len(self._knowledge_base.resource_positions)
                 #pict the last logged position as a target position
-                self._agent.target_pos = self._knowledge_base.resource_positions[length_resource_positions-1]
+                self._agent.target_pos = self._knowledge_base.resource_positions[-1]
     
         elif self._current_goal['name'] is 'find_drop_point':
             neighbors = self._agent.model.grid.get_neighbors(self._agent.pos, moore=True, include_center=False, radius=1)
@@ -143,9 +142,8 @@ class Awareness:
                 self._agent.target_pos = None
             elif len(self._knowledge_base.drop_point_positions) > 0: 
                 #keep looking, a little help from knowledge base
-                length_drop_point_positions = len(self._knowledge_base.drop_point_positions)
                 #pick the last logged position as a target position
-                self._agent.target_pos = self._knowledge_base.drop_point_positions[length_drop_point_positions-1]
+                self._agent.target_pos = self._knowledge_base.drop_point_positions[-1]
          
          #elif self._current_goal['name'] is 'find_recharge_point':  
          #    pass

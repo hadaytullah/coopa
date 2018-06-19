@@ -89,9 +89,9 @@ class KnowledgeBase:
         
         self._resource_positions = []
 
-        self._drop_point_positions = []
+        self._drop_point_positions = [(5, 5)]
 
-        self._recharge_point_positions = [(55,5)] #for testing purpose
+        self._recharge_point_positions = [(55, 5)] #for testing purpose
         
     @property
     def goals(self):

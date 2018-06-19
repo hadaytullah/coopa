@@ -80,7 +80,7 @@ def astar(map, start, goal, moore=True):
     while not start_reached:
         try:
             node = open.pop_task()
-            print("Popped node {} with f={}.".format(node.pos, node.f))
+            #print("Popped node {} with f={}.".format(node.pos, node.f))
         except KeyError:
             # If KeyError is raised, the open node list is empty and we cannot find a route to the starting node.
             return []
@@ -97,7 +97,7 @@ def astar(map, start, goal, moore=True):
             h = get_h(n_pos, start, moore=moore)
             f = g + h
             new_node = SearchNode(n_pos, node, g=g, h=h, f=f)
-            print("Considering neighbor {} with f={}".format(n_pos, f))
+            #print("Considering neighbor {} with f={}".format(n_pos, f))
             if n_pos in closed:
                 closed_node = closed[n_pos]
                 if new_node.f < closed_node.f:
