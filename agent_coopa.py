@@ -32,8 +32,13 @@ class AgentCoopa(AgentBasic):
         self._capacity = random.choice([1, 2, 3])
         self._awareness = Awareness(self)
 
-        # Create map of the environment for the agent, i.e. the agent knows its environment beforehand.
-        self._map = search.build_map(model.grid, [Wall, DropPoint, RechargePoint, Resource])
+        # Map with different layers
+        self._map = {}
+        self._impassables = [Wall, DropPoint, RechargePoint, Resource]
+        # Create map of the environment for the agent, i.e. the agent knows its environment beforehand
+        self._map['impassable'] = search.build_map(model.grid, self._impassables)
+        self._map['seen'] = np.full((model.grid.width, model.grid.height), None)
+        self._map['seen_time'] = np.zeros((model.grid.width, model.grid.height))
 
         #self._knowledge_base = KnowledgeBase()
 
@@ -60,7 +65,8 @@ class AgentCoopa(AgentBasic):
          # resource
         self._battery_power = 320 # each step will consume one unit
         self._is_recharging = False
-        self.scan_radius = 5
+        self._scan_radius = 5
+        self._grid = model.grid
         
     
     def step(self):
@@ -92,7 +98,7 @@ class AgentCoopa(AgentBasic):
     def target_pos(self, position):
         self._target_pos = position
         if self._target_pos is not None:
-            self._target_pos_path = search.astar(self._map, tuple(self.pos), tuple(self._target_pos))[1:-1]
+            self._target_pos_path = search.astar(self._map['impassable'], tuple(self.pos), tuple(self._target_pos))[1:-1]
 
     @property
     def capacity(self):
@@ -160,6 +166,7 @@ class AgentCoopa(AgentBasic):
             self.model.grid.move_agent(self, new_position)
 
     def _filter_nonvisible_objects(self, objects):
+        """Filters the objects the agent can't see from the objects list."""
         def is_visible(object, walls):
             line_cells = get_line(object.pos, self.pos)
             for cell in line_cells:
@@ -190,12 +197,6 @@ class AgentCoopa(AgentBasic):
 
         # Get the walls and non-walls
         walls = set()
-        others = []
-        for object in objects:
-            if type(object) == Wall:
-                walls.add(object.pos)
-            else:
-                others.append(object)
 
         # If no walls everything is visible
         if len(walls) <= 0:
@@ -203,21 +204,49 @@ class AgentCoopa(AgentBasic):
 
         # Proceed to check which neighbors are visible
         visible_objects = []
-        for object in others:
+        for object in objects:
             visible = is_visible(object, walls)
             if visible:
                 visible_objects.append(object)
 
         return visible_objects
 
+    def _get_objects(self):
+        """Gets all the objects in the agent's scan radius, including empty cells."""
+        objects = []
+        neighborhood = self._grid.iter_neighborhood(self.pos, moore=True, include_center=False,
+                                                    radius=self._scan_radius)
+        for cell in neighborhood:
+            x, y = cell
+            if self._grid[x][y] is None:
+                objects.append(type('emptyclass', (object,), {'pos': cell})())
+            else:
+                objects.append(self._grid[x][y])
+        return objects
 
     def process(self): #default GOAL: find resources and pick
         
         #print('Coopa.pickresource()')
         #resource_before = self._resource_count
         #print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
-        objects = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.scan_radius)
+        objects = self._get_objects()
         visible_objects = self._filter_nonvisible_objects(objects)
+
+        # Update map
+        for object in visible_objects:
+            x, y = object.pos
+            # Update impassable map
+            if type(object) in self._impassables:
+                self._map['impassable'][x][y] = 1
+            else:
+                self._map['impassable'][x][y] = 0
+            # Update map of seen cells
+            if type(object).__name__ is 'emptyclass':
+                self._map['seen'][x][y] = None
+            else:
+                self._map['seen'][x][y] = type(object)
+            # Update the time that cell was seen
+            self._map['seen_time'][x][y] = self._awareness._clock
 
         neighbors = []
         for object in visible_objects:

@@ -1,6 +1,8 @@
 import numpy as np
 
 def _line_special_cases(x1, y1, x2, y2, dx, dy):
+    """Check if the line is one of the special cases, such as completely straight or at 45 degree angle."""
+
     # Check zero length
     if (x1, y1) == (x2, y2):
         return [(x1, y1)]
@@ -25,6 +27,8 @@ def _line_special_cases(x1, y1, x2, y2, dx, dy):
     return None
 
 def get_line(start, end):
+    """Returns cells in a line from start to end point."""
+
     # Setup initial conditions
     x1, y1 = start
     x2, y2 = end
