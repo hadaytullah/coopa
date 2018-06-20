@@ -167,36 +167,41 @@ class AgentCoopa(AgentBasic):
 
     def _filter_nonvisible_objects(self, objects):
         """Filters the objects the agent can't see from the objects list."""
-        def is_visible(object, walls):
+        def add_visible(object, walls):
             line_cells = get_line(object.pos, self.pos)
-            for cell in line_cells:
+            for cell in line_cells[1:-1]:
                 if cell in walls:
                     return False
 
             # import numpy as np
-            # length = self.scan_radius * 2 + 1
+            # length = self._scan_radius * 2 + 1
             # grid = np.full((length, length), '.')
             # for cell in line_cells:
-            #     x = self.scan_radius + (cell[0] - self.pos[0])
-            #     y = self.scan_radius + (cell[1] - self.pos[1])
+            #     x = self._scan_radius + (cell[0] - self.pos[0])
+            #     y = self._scan_radius + (cell[1] - self.pos[1])
             #     grid[x][y] = '*'
-            # for wall in walls:
-            #     x = self.scan_radius + (wall[0] - self.pos[0])
-            #     y = self.scan_radius + (wall[1] - self.pos[1])
-            #     grid[x][y] = 'W'
-            # x = self.scan_radius + (object.pos[0] - self.pos[0])
-            # y = self.scan_radius + (object.pos[1] - self.pos[1])
+            # x = self._scan_radius + (object.pos[0] - self.pos[0])
+            # y = self._scan_radius + (object.pos[1] - self.pos[1])
             # grid[x][y] = 'O'
-            # grid[self.scan_radius][self.scan_radius] = 'A'
+            # grid[self._scan_radius][self._scan_radius] = 'A'
+            # for wall in walls:
+            #     x = self._scan_radius + (wall[0] - self.pos[0])
+            #     y = self._scan_radius + (wall[1] - self.pos[1])
+            #     grid[x][y] = 'W'
             # for i in range(length):
             #     row = ''
             #     for j in range(length):
             #         row += grid[i][j] + ' '
             #     print(row)
+            # print()
             return True
 
         # Get the walls and non-walls
         walls = set()
+
+        for object in objects:
+            if type(object) == Wall:
+                walls.add(object.pos)
 
         # If no walls everything is visible
         if len(walls) <= 0:
@@ -205,7 +210,7 @@ class AgentCoopa(AgentBasic):
         # Proceed to check which neighbors are visible
         visible_objects = []
         for object in objects:
-            visible = is_visible(object, walls)
+            visible = add_visible(object, walls)
             if visible:
                 visible_objects.append(object)
 
