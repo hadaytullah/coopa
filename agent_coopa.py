@@ -29,6 +29,7 @@ class AgentCoopa(AgentBasic):
         #self._pos_drop_point = None # they shall discover the drop point
 
         #self._cooperation = {}
+        self.name = "AgentCoopa#{:0>3}".format(self.unique_id)
         self._capacity = random.choice([1, 2, 3])
         self._awareness = Awareness(self)
 
@@ -76,10 +77,10 @@ class AgentCoopa(AgentBasic):
                 super(AgentCoopa, self).step()
                 self._battery_power -= 1
             else:
-                print("Agent#{} is recharging.".format(self.unique_id))
+                print("{} is recharging.".format(self.name))
                 self._recharge_battery()   
         else:
-            print("Agent#{} out of power.".format(self.unique_id))
+            print("{} out of power.".format(self.name))
 
     def receive(self, message):
         self._awareness.cooperation_awareness(message) #have to improve this, temporary solution
@@ -98,7 +99,9 @@ class AgentCoopa(AgentBasic):
     def target_pos(self, position):
         self._target_pos = position
         if self._target_pos is not None:
-            self._target_pos_path = search.astar(self._map['impassable'], tuple(self.pos), tuple(self._target_pos))[1:-1]
+            # Ensure that all positions are marked as tuples.
+            self._target_pos = tuple(self._target_pos)
+            self._target_pos_path = search.astar(self._map['impassable'], self.pos, self._target_pos)[1:-1]
 
     @property
     def capacity(self):
@@ -117,7 +120,7 @@ class AgentCoopa(AgentBasic):
                 if self.model.grid.is_cell_empty(new_pos):
                     self.model.grid.move_agent(self, new_pos)
                     self._target_pos_path = self._target_pos_path[1:]
-                    print("Moving on path to {}, {} steps left.".format(new_pos, len(self._target_pos_path)))
+                    print("{}: Moving on path to {}, {} steps left.".format(self.name, new_pos, len(self._target_pos_path)))
             else:
                 self._move_towards_point(self._target_pos)
         else:
@@ -316,9 +319,8 @@ class AgentCoopa(AgentBasic):
     #     #if self._resource_count > resource_before: #resource found
 
     def __repr__(self):
-        return "{}(#{}, bp:{}, rc:{}, tp:{}, cg:{})".format("AgentCoopa", self.unique_id, self.battery_power,
-                                                            self.resource_count, self.target_pos,
-                                                            self._awareness._current_goal)
+        return "{}(bp:{}, rc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.resource_count,
+                                                              self.pos, self.target_pos, self._awareness._current_goal)
 
     def __str__(self):
         return self.__repr__()
