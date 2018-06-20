@@ -64,30 +64,35 @@ class AgentCoopa(AgentBasic):
         self._target_pos = None
         self._target_pos_path = []
          # resource
-        self._battery_power = 320 # each step will consume one unit
+
+        # each step will consume units depending on speed, scan radius, etc.
+        self._battery_power = 320
+        self._max_battery_power = 320
         self._is_recharging = False
-        self._scan_radius = 5
+
+        self._speed = 1
+        self._scan_radius = 1
         self._grid = model.grid
-        
-    
+
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:
                 self._awareness.step()
                 super(AgentCoopa, self).step()
-                self._battery_power -= 1
+                self.drain_battery()
             else:
                 print("{} is recharging.".format(self.name))
-                self._recharge_battery()   
+                self.recharge_battery()
         else:
             print("{} out of power.".format(self.name))
 
     def receive(self, message):
         self._awareness.cooperation_awareness(message) #have to improve this, temporary solution
     
-    def _recharge_battery(self):
+    def recharge_battery(self):
         self._battery_power += 10
-        if self._battery_power >= 320:
+        if self._battery_power >= self._max_battery_power:
+            self._battery_power = self._max_battery_power
             self._is_recharging = False
             self._target_pos = None
 
@@ -110,6 +115,21 @@ class AgentCoopa(AgentBasic):
     @property
     def battery_power(self):
         return self._battery_power
+
+    @property
+    def speed(self):
+        return self._speed
+
+    @property
+    def scan_radius(self):
+        return self._scan_radius
+
+    def drain_battery(self):
+        """Drain battery based on the current agent configuration (speed, scan radius, etc.).
+        """
+        scan_drain = (self.scan_radius - 1) ** 1.5  # Magic number
+        speed_drain = self._speed  # Currently agents have fixed speed
+        self._battery_power -= scan_drain + speed_drain
 
     def move(self):
         #if self._current_goal is not None and self._current_goal['pos'] is not None:
@@ -319,8 +339,8 @@ class AgentCoopa(AgentBasic):
     #     #if self._resource_count > resource_before: #resource found
 
     def __repr__(self):
-        return "{}(bp:{}, rc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.resource_count,
-                                                              self.pos, self.target_pos, self._awareness._current_goal)
+        return "{}(bp:{:.2f}, rc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.resource_count,
+                                                                  self.pos, self.target_pos, self._awareness._current_goal)
 
     def __str__(self):
         return self.__repr__()
