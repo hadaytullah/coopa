@@ -170,8 +170,8 @@ class AgentCoopa(AgentBasic):
 
     def _filter_nonvisible_objects(self, objects):
         """Filters the objects the agent can't see from the objects list."""
-        def add_visible(object, walls):
-            line_cells = get_line(object.pos, self.pos)
+        def add_visible(obj, walls):
+            line_cells = get_line(obj.pos, self.pos)
             for cell in line_cells[1:-1]:
                 if cell in walls:
                     return False
@@ -241,25 +241,25 @@ class AgentCoopa(AgentBasic):
         visible_objects = self._filter_nonvisible_objects(objects)
 
         # Update map
-        for object in visible_objects:
-            x, y = object.pos
+        for obj in visible_objects:
+            x, y = obj.pos
             # Update impassable map
-            if type(object) in self._impassables:
+            if type(obj) in self._impassables:
                 self._map['impassable'][x][y] = 1
             else:
                 self._map['impassable'][x][y] = 0
             # Update map of seen cells
-            if type(object).__name__ is 'emptyclass':
+            if type(obj).__name__ is 'emptyclass':
                 self._map['seen'][x][y] = None
             else:
-                self._map['seen'][x][y] = type(object)
+                self._map['seen'][x][y] = type(obj)
             # Update the time that cell was seen
             self._map['seen_time'][x][y] = self._awareness._clock
 
         neighbors = []
-        for object in visible_objects:
-            if abs(object.pos[0] - self.pos[0]) <= 1 and abs(object.pos[1] - self.pos[1]) <= 1:
-                neighbors.append(object)
+        for obj in visible_objects:
+            if abs(obj.pos[0] - self.pos[0]) <= 1 and abs(obj.pos[1] - self.pos[1]) <= 1:
+                neighbors.append(obj)
 
         for neighbor in neighbors:
             if type(neighbor) is Resource:
