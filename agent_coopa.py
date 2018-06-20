@@ -199,9 +199,9 @@ class AgentCoopa(AgentBasic):
         # Get the walls and non-walls
         walls = set()
 
-        for object in objects:
-            if type(object) == Wall:
-                walls.add(object.pos)
+        for obj in objects:
+            if type(obj) == Wall:
+                walls.add(obj.pos)
 
         # If no walls everything is visible
         if len(walls) <= 0:
@@ -209,14 +209,14 @@ class AgentCoopa(AgentBasic):
 
         # Proceed to check which neighbors are visible
         visible_objects = []
-        for object in objects:
-            visible = add_visible(object, walls)
+        for obj in objects:
+            visible = add_visible(obj, walls)
             if visible:
-                visible_objects.append(object)
+                visible_objects.append(obj)
 
         return visible_objects
 
-    def _get_objects(self):
+    def _get_neighborhood_objects(self):
         """Gets all the objects in the agent's scan radius, including empty cells."""
         objects = []
         neighborhood = self._grid.iter_neighborhood(self.pos, moore=True, include_center=False,
@@ -234,7 +234,7 @@ class AgentCoopa(AgentBasic):
         #print('Coopa.pickresource()')
         #resource_before = self._resource_count
         #print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
-        objects = self._get_objects()
+        objects = self._get_neighborhood_objects()
         visible_objects = self._filter_nonvisible_objects(objects)
 
         # Update map
