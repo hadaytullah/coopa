@@ -14,8 +14,11 @@ def compute_gini(model):
     agent_resources = [agent.resource_count for agent in model.schedule.agents]
     x = sorted(agent_resources)
     N = model.num_agents
-    B = sum( xi * (N-i) for i,xi in enumerate(x) ) / (N*sum(x))
-    return (1 + (1/N) - 2*B)
+    if sum(x) > 0:
+        B = sum( xi * (N-i) for i,xi in enumerate(x) ) / (N*sum(x))
+        return (1 + (1/N) - 2*B)
+    else:
+        return 0
 
 class CoopaModel(Model):
     """A model with some number of agents."""

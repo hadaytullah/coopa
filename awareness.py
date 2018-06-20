@@ -28,7 +28,7 @@ class Awareness:
         self._time_resource_found = self._clock
         self._agent_resource_count_history = self._agent.resource_count
         # queue to maintain last 10 positions
-        self._agent_position_history = deque([(0,0)],10) 
+        self._agent_position_history = deque([(0, 0)], 10)
 
         # domain awareness
         self._time_domain_strategy_applied = self._clock
@@ -77,7 +77,7 @@ class Awareness:
             if pos_y < 0:
                 pos_y = int(self._agent.pos[1] + (self._agent.model.grid.height/3))
             
-            point = [pos_x, pos_y]
+            point = (pos_x, pos_y)
             if self._agent.model.grid.out_of_bounds(point) is False and self._agent.model.grid.is_cell_empty(point):
                 self._agent.target_pos = point
                 print('1.The new point is {}'.format(point))
@@ -110,7 +110,7 @@ class Awareness:
         #domain strategy: 
 
     def _goal_awareness_step(self):
-        print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal, self._agent.unique_id,self._agent.resource_count))
+        #print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal, self._agent.unique_id,self._agent.resource_count))
        
         #base condition, once reached target, reset position, below goal check could set a target otherwise None
         if self._agent.target_pos is not None:
@@ -163,7 +163,7 @@ class Awareness:
                
     def cooperation_awareness(self, message):
         if type(message) is Message:
-            print('-- Message Received from Agent# {}'.format(message.sender.unique_id))
+            print('-- Message Received from Agent# {}: {}'.format(message.sender.unique_id, message))
             
             # add a new cooperation
             if message.sender.unique_id not in self._cooperation:

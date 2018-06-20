@@ -7,7 +7,7 @@ import numpy as np
 # "Maximum distance" used for f.
 MAX_DIST = 100000
 
-# "Maximum" dimensions for the maps, used to derive fast lookups from dictionaries using object hashs.
+# "Maximum" dimensions for the maps, used to derive fast lookups from dictionaries using object hashes.
 MAX_DIM = 100000
 
 # Clock wise index differences from a center point, starting from the upper left corner.
@@ -20,7 +20,7 @@ class SearchNode:
     def __init__(self, pos, prev, g=0, h=0, f=MAX_DIST):
         self.x = pos[0]
         self.y = pos[1]
-        self.pos = pos
+        self.pos = tuple(pos)
         self.prev = prev
         self.g = g
         self.h = h
@@ -87,9 +87,8 @@ def astar(map, start, goal, moore=True):
 
         # Once we pop the starting node, we know we have the shortest path to it.
         if node.pos == start:
-            print("Path to {} found.".format(node.pos))
+            #print("Path to {} found.".format(node.pos))
             path = construct_path(node)
-            print(path)
             return path
 
         for n_pos in get_neighbors(map, node.pos, moore=moore):

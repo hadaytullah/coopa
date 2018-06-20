@@ -112,5 +112,3 @@ class KnowledgeBase:
     @property
     def recharge_point_positions(self):
         return self._recharge_point_positions
-
-        
