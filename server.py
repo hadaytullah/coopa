@@ -13,12 +13,16 @@ agent_type = UserSettableParameter('choice', 'Agent type', value=sorted(AGENT_TY
 
 
 grid = CanvasGrid(agent_portrayal, 60, 60, 600, 600)
-chart = ChartModule([{"Label": "Gini",
+chart = ChartModule([{"Label": "Drop point resources",
+                      "Color": "Black"}],
+                    data_collector_name='datacollector')
+
+chart2 = ChartModule([{"Label": "Average Battery power",
                       "Color": "Black"}],
                     data_collector_name='datacollector')
 
 server = ModularServer(CoopaModel,
-                       [grid, chart],
+                       [grid, chart, chart2],
                        "Coopa Model",
                        {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type})
 #server = ModularServer(CoopaModel,
