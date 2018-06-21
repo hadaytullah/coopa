@@ -1,4 +1,8 @@
+import os
+import logging
+
 import numpy as np
+
 
 def _line_special_cases(x1, y1, x2, y2, dx, dy):
     """Check if the line is one of the special cases, such as completely straight or at 45 degree angle."""
@@ -25,6 +29,7 @@ def _line_special_cases(x1, y1, x2, y2, dx, dy):
         return diagonal_points
 
     return None
+
 
 def get_line(start, end):
     """Returns cells in a line from start to end point."""
@@ -96,4 +101,26 @@ def get_line(start, end):
         for i in range(len(cells)):
             cells[i] = tuple(reversed(cells[i]))
     return cells
+
+
+def create_logger(name, log_path=None, level=logging.DEBUG, path_exist_ok=True):
+    """Get logger by name and configure it.
+    """
+    logger = logging.getLogger(name)
+    logger.handlers = []
+    logger.setLevel(level)
+    fmt = logging.Formatter('%(asctime)-15s %(levelname)s %(name)s Step %(clock)s: %(message)s')
+    shdl = logging.StreamHandler()
+    shdl.setLevel(level)
+    shdl.setFormatter(fmt)
+    logger.addHandler(shdl)
+    if log_path is not None:
+        os.makedirs(log_path, exist_ok=path_exist_ok)
+        fhdl = logging.FileHandler(os.path.join(log_path, "{}.log".format(name)))
+        fhdl.setFormatter(fmt)
+        logger.addHandler(fhdl)
+    logger.propagate = False
+    return logger
+
+
 

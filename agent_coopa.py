@@ -1,6 +1,7 @@
 import random
 import pdb
 import numpy as np
+import logging
 
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
@@ -13,13 +14,13 @@ from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
 from wall import Wall
 import search
-from utils import get_line
+from utils import get_line, create_logger
 
 
 class AgentCoopa(AgentBasic):
     """AgentCoopa cooperates with other agents"""
 
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model)
 
         model.message_dispatcher.register(self)
@@ -47,6 +48,8 @@ class AgentCoopa(AgentBasic):
         self._speed = 1
         self._scan_radius = 1
         self._grid = model.grid
+
+        self._logger = create_logger(self.name, log_path=log_path)
 
     def step(self):
         if self._battery_power > 0:
@@ -233,7 +236,10 @@ class AgentCoopa(AgentBasic):
                 if self._battery_power < 120:
                     self._is_recharging = True
 
-        print(self)
+        self._log(str(self))
+
+    def _log(self, msg, lvl=logging.DEBUG):
+        self._logger.log(lvl, msg, extra={'clock': self.model._clock})
 
     def __repr__(self):
         return "{}(bp:{:.2f}, rc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.resource_count,
@@ -241,3 +247,4 @@ class AgentCoopa(AgentBasic):
 
     def __str__(self):
         return self.__repr__()
+

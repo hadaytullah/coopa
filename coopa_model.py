@@ -1,3 +1,5 @@
+import logging
+
 from mesa import Model
 from resource import Resource
 from drop_point import DropPoint
@@ -9,6 +11,7 @@ from layout import Layout
 from ui_styling import AGENT_TYPES
 from recharge_point import RechargePoint
 from context import Context
+import utils
 
 
 def compute_gini(model):
@@ -34,7 +37,7 @@ def compute_average_battery_power(model):
 
 class CoopaModel(Model):
     """A model with some number of agents."""
-    def __init__(self, N, width, height, agent_type):
+    def __init__(self, N, width, height, agent_type, log_path=None):
         self.running = True
         self.num_agents = N
         self.grid = SingleGrid(width, height, torus=False)
@@ -43,6 +46,7 @@ class CoopaModel(Model):
         self.layout = Layout()
         self._context = Context()
         self.agent_type = AGENT_TYPES[agent_type]
+        self._clock = 0
 
         self.layout.draw(self.grid)
 
@@ -59,7 +63,7 @@ class CoopaModel(Model):
 
         # the mighty agents arrive
         for i in range(self.num_agents):
-            a = self.agent_type(i, self)
+            a = self.agent_type(i, self, log_path=log_path)
             self.schedule.add(a)
             self.grid.position_agent(a)
 
@@ -69,6 +73,14 @@ class CoopaModel(Model):
                              "Average Battery power": compute_average_battery_power},
             agent_reporters={"Resource": "resource_count"})  # An agent attribute
 
+        self.name = "CoopaModel"
+        self._logger = utils.create_logger(self.name, log_path=log_path)
+
     def step(self):
+        self._clock += 1
         self.datacollector.collect(self)
         self.schedule.step()
+        self._log("Finished.", logging.INFO)
+
+    def _log(self, msg, lvl=logging.DEBUG):
+        self._logger.log(lvl, msg, extra={'clock': self._clock})
