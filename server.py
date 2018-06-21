@@ -25,7 +25,4 @@ server = ModularServer(CoopaModel,
                        [grid, chart, chart2],
                        "Coopa Model",
                        {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type})
-#server = ModularServer(CoopaModel,
-#                       [grid],
-#                       "Coopa Model",
-#                       {"N": 100, "width": 10, "height": 10})
+

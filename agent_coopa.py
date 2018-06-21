@@ -23,12 +23,6 @@ class AgentCoopa(AgentBasic):
         super().__init__(unique_id, model)
 
         model.message_dispatcher.register(self)
-
-        #self._resource_count = 1 #random.choice([0,5])
-        #self._pos_resource = None # potential resource location
-        #self._pos_drop_point = None # they shall discover the drop point
-
-        #self._cooperation = {}
         self.name = "AgentCoopa#{:0>3}".format(self.unique_id)
         self._capacity = random.choice([1, 2, 3])
         self._awareness = Awareness(self)
@@ -41,29 +35,9 @@ class AgentCoopa(AgentBasic):
         self._map['seen'] = np.full((model.grid.width, model.grid.height), None)
         self._map['seen_time'] = np.zeros((model.grid.width, model.grid.height))
 
-        #self._knowledge_base = KnowledgeBase()
-
-        # self._goals = {
-        #     'random':{
-        #         'name' : 'random',
-        #         'pos' : None # potential resource location
-        #     },
-        #     'find_resource':{
-        #         'name' : 'find_resource',
-        #         'pos' : None # potential resource location
-        #     },
-        #     'find_drop_point':{
-        #         'name' : 'find_drop_point',
-        #         'pos' : None # potential drop point location
-
-        #     }
-        # }
-
-        #self._current_goal = self._goals['find_resource']
-        #self._current_goal = self._knowledge_base.goals['random']
+        # Agent next target position (cell) and a possible path to it (if computed).
         self._target_pos = None
         self._target_pos_path = []
-         # resource
 
         # each step will consume units depending on speed, scan radius, etc.
         self._battery_power = 320
@@ -132,7 +106,6 @@ class AgentCoopa(AgentBasic):
         self._battery_power -= scan_drain + speed_drain
 
     def move(self):
-        #if self._current_goal is not None and self._current_goal['pos'] is not None:
         if self._target_pos is not None:
             if len(self._target_pos_path) > 0:
                 # Consume a movement from the path if it is available
@@ -146,20 +119,7 @@ class AgentCoopa(AgentBasic):
         else:
             super(AgentCoopa, self).move()
 
-#        if self._current_goal['name'] is 'find_resource' and random.randrange(1,100) < 50:
-#                self._move_towards_point (self._current_goal['pos'])
-#        elif self._current_goal['name'] is 'find_drop_point' and self._current_goal['pos'] is not None:
-#            self._move_towards_point (self._current_goal['pos'])
-#        else:
-#            super(AgentCoopa,self).move()
-
     def _move_towards_point(self, point):
-        #print('-- destination point {}'.format(point))
-        #pdb.set_trace()
-        #moore: up,down,left,right and diagonal movements
-        #von neumann: up, down, left, right
-        # include_center = false, mean do not consider its current location
-        #possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
         possible_steps = []
         for cell in self.model.grid.iter_neighborhood(self.pos, moore=True):
             #print('cell is empty {}'.format(cell))
@@ -196,27 +156,6 @@ class AgentCoopa(AgentBasic):
                 if cell in walls:
                     return False
 
-            # import numpy as np
-            # length = self._scan_radius * 2 + 1
-            # grid = np.full((length, length), '.')
-            # for cell in line_cells:
-            #     x = self._scan_radius + (cell[0] - self.pos[0])
-            #     y = self._scan_radius + (cell[1] - self.pos[1])
-            #     grid[x][y] = '*'
-            # x = self._scan_radius + (object.pos[0] - self.pos[0])
-            # y = self._scan_radius + (object.pos[1] - self.pos[1])
-            # grid[x][y] = 'O'
-            # grid[self._scan_radius][self._scan_radius] = 'A'
-            # for wall in walls:
-            #     x = self._scan_radius + (wall[0] - self.pos[0])
-            #     y = self._scan_radius + (wall[1] - self.pos[1])
-            #     grid[x][y] = 'W'
-            # for i in range(length):
-            #     row = ''
-            #     for j in range(length):
-            #         row += grid[i][j] + ' '
-            #     print(row)
-            # print()
             return True
 
         # Get the walls and non-walls
@@ -253,10 +192,6 @@ class AgentCoopa(AgentBasic):
         return objects
 
     def process(self): #default GOAL: find resources and pick
-        
-        #print('Coopa.pickresource()')
-        #resource_before = self._resource_count
-        #print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
         objects = self._get_neighborhood_objects()
         visible_objects = self._filter_nonvisible_objects(objects)
 
@@ -283,60 +218,22 @@ class AgentCoopa(AgentBasic):
 
         for neighbor in neighbors:
             if type(neighbor) is Resource:
-                #TODO: abstract out the cooperation and goal awareness
-                #self.model.message_dispatcher.broadcast(Message(self, 'resource', self.pos[0], self.pos[1]))
+                # Collect resources in the neighborhood
                 if self._resource_count < self._capacity:
                     self._resource_count += 1
                     self.model.grid.remove_agent(neighbor)
-                #else: #GOAL changed: look for drop point and not resources
-                #    self._current_goal = self._goals['find_drop_point']
 
             elif type(neighbor) is DropPoint:
-                #print('-- Drop point found -------------------')
-                #self.model.message_dispatcher.broadcast(Message(self, 'drop_point', self.pos[0], self.pos[1]))
+                # Drop resources to a drop point.
                 neighbor.add_resources(self._resource_count)
                 self._resource_count = 0
-                #GOAL changed: look for drop point and not resources
-                #self._goals['find_resource']['pos'] = None
-                #self._current_goal = self._goals['find_resource']
             
             elif type(neighbor) is RechargePoint:
+                # Recharge
                 if self._battery_power < 120:
                     self._is_recharging = True
-                    #self._battery_power = 360
-                    #TODO: the agent shall wait for charging, depending on the amount of recharging required
-                
 
         print(self)
-
-    # def process_(self): #default GOAL: find resources and pick
-    #     #print('Coopa.pickresource()')
-    #     #resource_before = self._resource_count
-    #     print('AgentCoopa %s #%s, before resource_count, %i' %(self._current_goal['name'], self.unique_id,self._resource_count))
-    #     cellmates = self.model.grid.get_cell_list_contents([self.pos])
-    #     if len(cellmates) > 1:
-    #         for other in cellmates:
-    #             if type(other) is Resource:
-    #                 #TODO: abstract out the cooperation and goal awareness
-    #                 self.model.message_dispatcher.broadcast(Message(self, 'resource', self.pos[0], self.pos[1]))
-    #                 if self._resource_count < self._capacity:
-    #                     self._resource_count += 1
-    #                     self.model.grid.remove_agent(other)
-    #                 else: #GOAL changed: look for drop point and not resources
-    #                     self._current_goal = self._goals['find_drop_point']
-
-    #             elif type(other) is DropPoint:
-    #                 print('-- Drop point found -------------------')
-    #                 self.model.message_dispatcher.broadcast(Message(self, 'drop_point', self.pos[0], self.pos[1]))
-    #                 other.add_resources(self._resource_count)
-    #                 self._resource_count = 0
-    #                 #GOAL changed: look for drop point and not resources
-    #                 self._goals['find_resource']['pos'] = None
-    #                 self._current_goal = self._goals['find_resource']
-
-    #     print('AgentCoopa #%s, after resource_count, %i' %(self.unique_id,self._resource_count))
-
-    #     #if self._resource_count > resource_before: #resource found
 
     def __repr__(self):
         return "{}(bp:{:.2f}, rc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.resource_count,
