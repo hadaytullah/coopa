@@ -41,11 +41,18 @@ class Awareness:
         self._domain_awareness_step()
         self._resource_awareness_step()
         
-    def _resource_awareness_step(self):
+    def _resource_awareness_step_old(self):
         if self._agent.battery_power < 100: #TODO: take care of constants related to the grid size
             #find recharge point
             if len(self._knowledge_base.recharge_point_positions) > 0:
                 self._agent.target_pos = self._knowledge_base.recharge_point_positions[0]
+   
+    def _resource_awareness_step(self):
+        if self._agent.battery_power < 400: #TODO: take care of constants related to the grid size
+            #find recharge point
+            if len(self._knowledge_base.recharge_point_positions) > 0:
+                self._promote_direction (self._knowledge_base.recharge_point_positions[0])
+
 
     def _time_awareness_step(self):
         #TODO: do it properly. This is a quick solution to facilitate domain awareness
@@ -173,3 +180,60 @@ class Awareness:
                 elif message.position_of is 'recharge_point':
                     self._knowledge_base.recharge_point_positions.append([message.x, message.y])
 
+    def _promote_direction (self, point):
+        possible_steps = []
+        for cell in self._agent.model.grid.iter_neighborhood(self._agent.pos, moore=True):
+            #print('cell is empty {}'.format(cell))
+            if self._agent.model.grid.is_cell_empty(cell):
+                #print('cell is empty {}'.format(cell))
+                possible_steps.append(cell)
+
+        if len(possible_steps) > 0:
+            x_distance_shortest = abs(possible_steps[0][0] - point[0])
+            y_distance_shortest = abs(possible_steps[0][1] - point[1])
+            new_position = possible_steps[0]
+
+            for step in possible_steps:
+                x_distance = abs(step[0] - point[0])
+                y_distance = abs(step[1] - point[1])
+                #print('step:{}, x_distance:{} , y_distance:{}'.format(step, x_distance, y_distance))
+                if x_distance <= x_distance_shortest and y_distance <= y_distance_shortest:
+                    new_position = step
+                    #print('new position for agent#{}: {}'.format(self.unique_id, new_position))
+                    x_distance_shortest = x_distance
+                    y_distance_shortest = y_distance
+        
+        direction_matrix_index = 4 # default center, don't move
+
+        #top-right
+        if new_position[0] - self._agent.pos[0] > 0 and new_position[1] - self._agent.pos[1] > 0:
+            direction_matrix_index = 2
+        #top
+        elif new_position[0] - self._agent.pos[0] is 0 and new_position[1] - self._agent.pos[1] > 0:
+            direction_matrix_index = 1
+        #top-left
+        elif new_position[0] - self._agent.pos[0] < 0 and new_position[1] - self._agent.pos[1] > 0:
+            direction_matrix_index = 0
+        #left
+        elif new_position[0] - self._agent.pos[0] < 0 and new_position[1] - self._agent.pos[1] is 0:
+            direction_matrix_index = 3
+        #center
+        elif new_position[0] - self._agent.pos[0] is 0 and new_position[1] - self._agent.pos[1] is 0:
+            direction_matrix_index = 4
+        #right
+        elif new_position[0] - self._agent.pos[0] > 0 and new_position[1] - self._agent.pos[1] is 0:
+            direction_matrix_index = 5
+        #botton-left
+        elif new_position[0] - self._agent.pos[0] < 0 and new_position[1] - self._agent.pos[1] < 0:
+            direction_matrix_index = 6
+        #bottom
+        elif new_position[0] - self._agent.pos[0] is 0 and new_position[1] - self._agent.pos[1] < 0:
+            direction_matrix_index = 7
+        #bottom-right
+        elif new_position[0] - self._agent.pos[0] > 0 and new_position[1] - self._agent.pos[1] < 0:
+            direction_matrix_index = 8
+
+        self._agent.direction_matrix[direction_matrix_index] = self._agent.direction_matrix[direction_matrix_index] + 10
+            #new_position = random.choice(possible_steps)
+            #print('new position for agent#{}: {}'.format(self.unique_id, new_position))
+            #self.model.grid.move_agent(self, new_position)

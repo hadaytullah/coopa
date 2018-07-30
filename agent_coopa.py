@@ -52,6 +52,7 @@ class AgentCoopa(AgentBasic):
         self._logger = create_logger(self.name, log_path=log_path)
 
         self._direction_matrix =[0,0,0,0,0,0,0,0,0]
+        self._direction_matrix = np.random.randint(1,50,9)
 
     def step(self):
         if self._battery_power > 0:
@@ -86,6 +87,10 @@ class AgentCoopa(AgentBasic):
             # Ensure that all positions are marked as tuples.
             self._target_pos = tuple(self._target_pos)
             self._target_pos_path = search.astar(self._map['impassable'], self.pos, self._target_pos)[1:-1]
+
+    @property
+    def direction_matrix(self):
+        return self._direction_matrix
 
     @property
     def capacity(self):
@@ -134,7 +139,8 @@ class AgentCoopa(AgentBasic):
         # (-1,1), (0,1), (1,1)
         # (-1,0), (0,0), (1,0)
         # (-1,-1), (0,-1), (1,-1)
-        self._direction_matrix = np.random.randint(1,100,9)
+        #self._direction_matrix = np.random.randint(1,100,9)
+
         highest_score = 0
         highest_index = 0
         for index, score in enumerate(self._direction_matrix):
