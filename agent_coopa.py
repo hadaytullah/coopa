@@ -51,6 +51,8 @@ class AgentCoopa(AgentBasic):
 
         self._logger = create_logger(self.name, log_path=log_path)
 
+        self._direction_matrix =[0,0,0,0,0,0,0,0,0]
+
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:
@@ -108,7 +110,7 @@ class AgentCoopa(AgentBasic):
         speed_drain = self._speed  # Currently agents have fixed speed
         self._battery_power -= scan_drain + speed_drain
 
-    def move(self):
+    def move_old(self):
         if self._target_pos is not None:
             if len(self._target_pos_path) > 0:
                 # Consume a movement from the path if it is available
@@ -122,6 +124,70 @@ class AgentCoopa(AgentBasic):
         else:
             super(AgentCoopa, self).move()
 
+    def move(self):
+
+        # Matrix
+        # 0,1,2
+        # 3,4,5
+        # 6,7,8
+        #TODO: have to make DM class 
+        # (-1,1), (0,1), (1,1)
+        # (-1,0), (0,0), (1,0)
+        # (-1,-1), (0,-1), (1,-1)
+        self._direction_matrix = np.random.randint(1,100,9)
+        highest_score = 0
+        highest_index = 0
+        for index, score in enumerate(self._direction_matrix):
+            if score > highest_score:
+                highest_score = score
+                highest_index = index
+        
+        destination_point = [self.pos[0], self.pos[1]]
+        print('Highest index, direction is {}'.format(highest_index))
+        if highest_index is 0:
+            destination_point[0] = self.pos[0] - 1
+            destination_point[1] = self.pos[1] + 1
+        elif highest_index is 1:
+            destination_point[0] = self.pos[0]
+            destination_point[1] = self.pos[1] + 1
+        elif highest_index is 2:
+            destination_point[0] = self.pos[0] + 1
+            destination_point[1] = self.pos[1] + 1
+        elif highest_index is 3:
+            destination_point[0] = self.pos[0] - 1
+            destination_point[1] = self.pos[1]
+        elif highest_index is 4:
+            destination_point[0] = self.pos[0]
+            destination_point[1] = self.pos[1]
+        elif highest_index is 5:
+            destination_point[0] = self.pos[0] + 1
+            destination_point[1] = self.pos[1]
+        elif highest_index is 6:
+            destination_point[0] = self.pos[0] - 1
+            destination_point[1] = self.pos[1] - 1
+        elif highest_index is 7:
+            destination_point[0] = self.pos[0]
+            destination_point[1] = self.pos[1] - 1
+        elif highest_index is 8:
+            destination_point[0] = self.pos[0] + 1
+            destination_point[1] = self.pos[1] - 1
+
+        if self.model.grid.is_cell_empty(destination_point) is True and self.model.grid.out_of_bounds(destination_point) is False:
+            self.model.grid.move_agent(self, destination_point)
+          
+
+        # if self._target_pos is not None:
+        #     if len(self._target_pos_path) > 0:
+        #         # Consume a movement from the path if it is available
+        #         new_pos = self._target_pos_path[0]
+        #         if self.model.grid.is_cell_empty(new_pos):
+        #             self.model.grid.move_agent(self, new_pos)
+        #             self._target_pos_path = self._target_pos_path[1:]
+        #             print("{}: Moving on path to {}, {} steps left.".format(self.name, new_pos, len(self._target_pos_path)))
+        #     else:
+        #         self._move_towards_point(self._target_pos)
+        # else:
+        #     super(AgentCoopa, self).move()
     def _move_towards_point(self, point):
         possible_steps = []
         for cell in self.model.grid.iter_neighborhood(self.pos, moore=True):
