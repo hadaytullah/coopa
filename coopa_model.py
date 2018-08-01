@@ -1,4 +1,5 @@
 import logging
+import time
 
 from mesa import Model
 from resource import Resource
@@ -33,6 +34,14 @@ def compute_dropped_resources(model):
 def compute_average_battery_power(model):
     bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
     return sum(bps) / len(bps)
+
+def compute_max_battery_power(model):
+    bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
+    return max(bps)
+
+def compute_min_battery_power(model):
+    bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
+    return min(bps)
 
 
 class CoopaModel(Model):
@@ -70,17 +79,20 @@ class CoopaModel(Model):
         self.datacollector = DataCollector(
             model_reporters={"Gini": compute_gini,
                              "Drop point resources": compute_dropped_resources,
-                             "Average Battery power": compute_average_battery_power},
+                             "Average battery power": compute_average_battery_power,
+                             "Max battery power": compute_max_battery_power,
+                             "Min battery power": compute_min_battery_power},
             agent_reporters={"Resource": "resource_count"})  # An agent attribute
 
         self.name = "CoopaModel"
         self._logger = utils.create_logger(self.name, log_path=log_path)
 
     def step(self):
+        t = time.monotonic()
         self._clock += 1
         self.datacollector.collect(self)
         self.schedule.step()
-        self._log("Finished.", logging.INFO)
+        self._log("Finished in {:.5f} seconds.".format(time.monotonic() - t), logging.INFO)
 
     def _log(self, msg, lvl=logging.DEBUG):
         self._logger.log(lvl, msg, extra={'clock': self._clock})

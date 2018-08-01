@@ -58,10 +58,10 @@ class AgentCoopa(AgentBasic):
                 super(AgentCoopa, self).step()
                 self.drain_battery()
             else:
-                print("{} is recharging.".format(self.name))
+                self._log("{} is recharging.".format(self.name), logging.INFO)
                 self.recharge_battery()
         else:
-            print("{} out of power.".format(self.name))
+            self._log("{} out of power.".format(self.name), logging.INFO)
 
     def receive(self, message):
         self._awareness.cooperation_awareness(message) #have to improve this, temporary solution
@@ -116,7 +116,7 @@ class AgentCoopa(AgentBasic):
                 if self.model.grid.is_cell_empty(new_pos):
                     self.model.grid.move_agent(self, new_pos)
                     self._target_pos_path = self._target_pos_path[1:]
-                    print("{}: Moving on path to {}, {} steps left.".format(self.name, new_pos, len(self._target_pos_path)))
+                    self._log("{}: Moving on path to {}, {} steps left.".format(self.name, new_pos, len(self._target_pos_path)), logging.DEBUG)
             else:
                 self._move_towards_point(self._target_pos)
         else:

@@ -17,8 +17,13 @@ chart = ChartModule([{"Label": "Drop point resources",
                       "Color": "Black"}],
                     data_collector_name='datacollector')
 
-chart2 = ChartModule([{"Label": "Average Battery power",
-                      "Color": "Black"}],
+chart2 = ChartModule([{"Label": "Average battery power",
+                      "Color": "Black"},
+                      {"Label": "Max battery power",
+                      "Color": "Green"},
+                      {"Label": "Min battery power",
+                      "Color": "Red"},
+                      ],
                     data_collector_name='datacollector')
 
 server = ModularServer(CoopaModel,
