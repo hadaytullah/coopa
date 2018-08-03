@@ -61,10 +61,10 @@ class AgentCoopa(AgentBasic):
                 super(AgentCoopa, self).step()
                 self.drain_battery()
             else:
-                print("{} is recharging.".format(self.name))
+                self._log("{} is recharging.".format(self.name), logging.INFO)
                 self.recharge_battery()
         else:
-            print("{} out of power.".format(self.name))
+            self._log("{} out of power.".format(self.name), logging.INFO)
 
     def receive(self, message):
         self._awareness.cooperation_awareness(message) #have to improve this, temporary solution
@@ -123,7 +123,7 @@ class AgentCoopa(AgentBasic):
                 if self.model.grid.is_cell_empty(new_pos):
                     self.model.grid.move_agent(self, new_pos)
                     self._target_pos_path = self._target_pos_path[1:]
-                    print("{}: Moving on path to {}, {} steps left.".format(self.name, new_pos, len(self._target_pos_path)))
+                    self._log("Moving on path to {}, {} steps left.".format(new_pos, len(self._target_pos_path)))
             else:
                 self._move_towards_point(self._target_pos)
         else:
@@ -141,45 +141,22 @@ class AgentCoopa(AgentBasic):
         # (-1,-1), (0,-1), (1,-1)
         #self._direction_matrix = np.random.randint(1,100,9)
 
+        index2delta = [(-1, 1), (0, 1), (1, 1), (-1, 0), (0, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
+
         highest_score = 0
-        highest_index = 0
+        highest_index = random.randint(0, 8)  # Little bit of randomness if all the indices have the same score
         for index, score in enumerate(self._direction_matrix):
             if score > highest_score:
                 highest_score = score
                 highest_index = index
-        
-        destination_point = [self.pos[0], self.pos[1]]
-        print('Highest index, direction is {}'.format(highest_index))
-        if highest_index is 0:
-            destination_point[0] = self.pos[0] - 1
-            destination_point[1] = self.pos[1] + 1
-        elif highest_index is 1:
-            destination_point[0] = self.pos[0]
-            destination_point[1] = self.pos[1] + 1
-        elif highest_index is 2:
-            destination_point[0] = self.pos[0] + 1
-            destination_point[1] = self.pos[1] + 1
-        elif highest_index is 3:
-            destination_point[0] = self.pos[0] - 1
-            destination_point[1] = self.pos[1]
-        elif highest_index is 4:
-            destination_point[0] = self.pos[0]
-            destination_point[1] = self.pos[1]
-        elif highest_index is 5:
-            destination_point[0] = self.pos[0] + 1
-            destination_point[1] = self.pos[1]
-        elif highest_index is 6:
-            destination_point[0] = self.pos[0] - 1
-            destination_point[1] = self.pos[1] - 1
-        elif highest_index is 7:
-            destination_point[0] = self.pos[0]
-            destination_point[1] = self.pos[1] - 1
-        elif highest_index is 8:
-            destination_point[0] = self.pos[0] + 1
-            destination_point[1] = self.pos[1] - 1
 
-        if self.model.grid.is_cell_empty(destination_point) is True and self.model.grid.out_of_bounds(destination_point) is False:
-            self.model.grid.move_agent(self, destination_point)
+        self._log('Highest index, direction is {} '.format(highest_index))
+
+        dp = np.array(self.pos) + index2delta[highest_index]
+        dp = [int(dp[0]), int(dp[1])]  # Cast to ints, otherwise they would be numpy doubles, failing move_agent
+
+        if self.model.grid.out_of_bounds(dp) is False and self.model.grid.is_cell_empty(dp) is True:
+            self.model.grid.move_agent(self, dp)
           
 
         # if self._target_pos is not None:
