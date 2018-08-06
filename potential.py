@@ -41,3 +41,4 @@ class PotentialField:
         self._pf[x:x+s[0], y:y+s[1]] -= mask
 
 
+
