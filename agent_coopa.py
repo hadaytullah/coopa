@@ -194,12 +194,10 @@ class AgentCoopa(AgentBasic):
                 objects.append(self._grid[x][y])
         return objects
 
-    def process(self): #default GOAL: find resources and pick
-        objects = self._get_neighborhood_objects()
-        visible_objects = self._filter_nonvisible_objects(objects)
-
-        # Update map
-        for obj in visible_objects:
+    def update_maps(self, objects):
+        """Update agents internal maps with given objects.
+        """
+        for obj in objects:
             x, y = obj.pos
             # Update impassable map
             if type(obj) in self._impassables:
@@ -214,10 +212,20 @@ class AgentCoopa(AgentBasic):
             # Update the time that cell was seen
             self._map['seen_time'][x][y] = self._awareness._clock
 
+    def filter_neighbors(self, objects):
+        """Return only the objects that are currently neighboring the agent.
+        """
         neighbors = []
-        for obj in visible_objects:
+        for obj in objects:
             if abs(obj.pos[0] - self.pos[0]) <= 1 and abs(obj.pos[1] - self.pos[1]) <= 1:
                 neighbors.append(obj)
+        return neighbors
+
+    def process(self): #default GOAL: find resources and pick
+        objects = self._get_neighborhood_objects()
+        visible_objects = self._filter_nonvisible_objects(objects)
+        neighbors = self.filter_neighbors(visible_objects)
+        self.update_maps(visible_objects)
 
         for neighbor in neighbors:
             if type(neighbor) is Resource:
