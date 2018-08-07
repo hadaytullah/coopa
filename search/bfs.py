@@ -1,6 +1,6 @@
 """Breadth-first search.
 """
-from search.pq import PQ
+from collections import deque
 
 import numpy as np
 
@@ -51,12 +51,11 @@ def bfs(map, goal, moore=True):
     """
     distances = np.zeros(map.shape)
     distances -= 1
-    open = [SearchNode(goal, None, f=0)]
+    open = deque([SearchNode(goal, None, f=0)])
     closed = {}
 
-    while open:
-        current = open[0]
-        open = open[1:]
+    while len(open) > 0:
+        current = open.pop()
 
         for n_pos in get_neighbors(map, current.pos, moore=moore):
             new_node = SearchNode(n_pos, current, f=current.f + 1)
@@ -64,10 +63,10 @@ def bfs(map, goal, moore=True):
                 closed_node = closed[n_pos]
                 if new_node.f < closed_node.f:
                     del closed[n_pos]
-                    open.append(new_node)
+                    open.appendleft(new_node)
                     distances[new_node.pos] = new_node.f
             else:
-                open.append(new_node)
+                open.appendleft(new_node)
 
         closed[current.pos] = current
         if distances[current.pos] == -1:
@@ -79,17 +78,22 @@ def bfs(map, goal, moore=True):
 
 
 if __name__ == "__main__":
+    import time
     map = np.zeros((10, 10))
     map[3, 3:9] = 1
     map[1:9, 3] = 1
     map[3:5, 8] = 1
     print(map)
     goal = (9, 9)
+    t = time.monotonic()
     map2 = bfs(map, goal, moore=True)
+    print(time.monotonic() - t)
     print(map2)
 
     goal = (9, 0)
+    t = time.monotonic()
     map3 = bfs(map, goal, moore=True)
+    print(time.monotonic() - t)
     print(map3)
     map4 = np.minimum(map2, map3)
     print(map4)
