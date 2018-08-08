@@ -52,7 +52,7 @@ class AgentPotentialField(AgentBasic):
         # each step will consume units depending on speed, scan radius, etc.
         self._battery_power = 320
         self._max_battery_power = 320
-        self._battery_threshold = self._max_battery_power / 3
+        self._battery_threshold = self._max_battery_power / 3 + 20
         self._is_recharging = False
 
         # Known battery recharge and resource drop points.
@@ -130,6 +130,7 @@ class AgentPotentialField(AgentBasic):
         """Drain battery based on the current agent configuration (speed, scan radius, etc.).
         """
         scan_drain = (self.scan_radius - 1) ** 1.5  # Magic number
+        scan_drain = 1
         speed_drain = self._speed  # Currently agents have fixed speed
         self._battery_power -= scan_drain + speed_drain
 
@@ -273,7 +274,11 @@ class AgentPotentialField(AgentBasic):
             if type(obj).__name__ is 'emptyclass':
                 self._map['seen'][x][y] = None
             else:
+                old = self._map['seen'][x][y]
                 self._map['seen'][x][y] = type(obj)
+                if type(obj) == Resource and old is None:
+                    self._resource_pf.add_recharge_point(obj.pos)
+                    belief_changed = True
             # Update the time that cell was seen
             self._map['seen_time'][x][y] = self._meta_system._clock
 
@@ -298,9 +303,12 @@ class AgentPotentialField(AgentBasic):
                     self._resource_count += 1
                     self.model.grid.remove_agent(neighbor)
                     # Free the cell from the internal maps
-                    #self._map['seen'][nb_pos] = None
-                    #self._map['impassable'][nb_pos] = 0
-                    #belief_changed = True
+                    self._map['seen'][nb_pos] = None
+                    self._map['impassable'][nb_pos] = 0
+                    self._resource_pf.remove_recharge_point(nb_pos)
+                    self._resource_pf.update(self._map['impassable'])
+                    self._recharge_pf.update(self._map['impassable'])
+                    self._drop_pf.update(self._map['impassable'])
 
             elif type(neighbor) is DropPoint:
                 # Drop resources to a drop point.
