@@ -1,3 +1,6 @@
+import math
+import random
+from collections import deque
 
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
@@ -7,14 +10,12 @@ from message import Message
 from cooperation import Cooperation
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
-from collections import deque
+from recharge_potential import RechargePotentialField
 
-import math
-import random
-import pdb
 
-class Awareness:
-    """All awarenesses shall exist here."""
+class PotentialFieldMetaSystem:
+    """Metasubsystem for the agent, which holds the different awarenesses and how they are intertwined together.
+    """
 
     def __init__(self, agent):
         self._agent = agent

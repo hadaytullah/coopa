@@ -9,30 +9,39 @@ from resource import Resource
 from drop_point import DropPoint
 from message import Message
 from cooperation import Cooperation
-from metasystem import MetaSystem
+from pf_metasystem import PotentialFieldMetaSystem
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
+from recharge_potential import RechargePotentialField
 from wall import Wall
 import search
 from utils import get_line, create_logger
 
+# Clock wise index differences from a center point, starting from the upper left corner.
+clock_wise = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
+clock_wise4 = [(-1, 0), (0, 1), (1, 0), (0, -1)]
 
-class AgentCoopa(AgentBasic):
-    """AgentCoopa cooperates with other agents"""
+
+class AgentPotentialField(AgentBasic):
+    """Agent which uses potential fields for awarenesses."""
 
     def __init__(self, unique_id, model, log_path=None):
-        super().__init__(unique_id, model, log_path=log_path)
+        super().__init__(unique_id, model)
 
         model.message_dispatcher.register(self)
-        self.name = "AgentCoopa#{:0>3}".format(self.unique_id)
-        self._capacity = random.choice([1, 2, 3])
-        self._meta_system = MetaSystem(self)
+        self.name = "AgentPF#{:0>3}".format(self.unique_id)
+        self._logger = create_logger(self.name, log_path=log_path)
+
+        self._capacity = 1
+        # self._capacity = random.choice([1, 2, 3])
+        self._meta_system = PotentialFieldMetaSystem(self)
 
         # Map with different layers
         self._map = {}
         self._impassables = [Wall, DropPoint, RechargePoint, Resource]
-        # Create map of the environment for the agent, i.e. the agent knows its environment beforehand
-        self._map['impassable'] = search.build_map(model.grid, self._impassables)
+        # Initialize the whole environment to be thought to be an empty grid. The belief of the environment state is
+        # then updated through observations
+        self._map['impassable'] = np.zeros((model.grid.width, model.grid.height))
         self._map['seen'] = np.full((model.grid.width, model.grid.height), None)
         self._map['seen_time'] = np.zeros((model.grid.width, model.grid.height))
 
@@ -43,25 +52,41 @@ class AgentCoopa(AgentBasic):
         # each step will consume units depending on speed, scan radius, etc.
         self._battery_power = 320
         self._max_battery_power = 320
+        self._battery_threshold = self._max_battery_power / 3
         self._is_recharging = False
+
+        # Known battery recharge and resource drop points.
+        self._recharge_point = self.model.recharge_points[0].pos
+        self._map['impassable'][self._recharge_point] = -1
+        self._map['seen'][self._recharge_point] = RechargePoint
+        self._drop_point = self.model.drop_points[0].pos
+        self._map['impassable'][self._drop_point] = -1
+        self._map['seen'][self._drop_point] = DropPoint
+
+        self._current_neighbors = None
 
         self._speed = 1
         self._scan_radius = 1
         self._grid = model.grid
 
-        self._logger = create_logger(self.name, log_path=log_path)
+        # Different potential fields which agent uses to move in different situations.
+        self._recharge_pf = RechargePotentialField(self._grid.width, self._grid.height, [self._recharge_point])
+        self._recharge_pf.update(self._map['impassable'])
+        self._drop_pf = RechargePotentialField(self._grid.width, self._grid.height, [self._drop_point])
+        self._drop_pf.update(self._map['impassable'])
+        self._resource_pf = RechargePotentialField(self._grid.width, self._grid.height, [])
 
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:
                 self._meta_system.step()
-                super(AgentCoopa, self).step()
+                super(AgentPotentialField, self).step()
                 self.drain_battery()
             else:
                 self._log("{} is recharging.".format(self.name), logging.INFO)
                 self.recharge_battery()
         else:
-            self._log("{} out of power.".format(self.name), logging.INFO)
+            self._log("{} out of power.".format(self.name), logging.WARNING)
 
     def receive(self, message):
         self._meta_system.cooperation_awareness(message) #have to improve this, temporary solution
@@ -108,19 +133,53 @@ class AgentCoopa(AgentBasic):
         speed_drain = self._speed  # Currently agents have fixed speed
         self._battery_power -= scan_drain + speed_drain
 
+    def observe(self):
+        objects = self._get_neighborhood_objects()
+        visible_objects = self._filter_nonvisible_objects(objects)
+        self._current_neighbors = self.filter_neighbors(visible_objects)
+        belief_changed = self.update_maps(visible_objects)
+
+        # Update potential fields.
+        if belief_changed:
+            self._log("Belief of environment changed: Updating potential fields", logging.INFO)
+            self._recharge_pf.update(self._map['impassable'])
+            self._drop_pf.update(self._map['impassable'])
+            self._resource_pf.update(self._map['impassable'])
+
     def move(self):
-        if self._target_pos is not None:
-            if len(self._target_pos_path) > 0:
-                # Consume a movement from the path if it is available
-                new_pos = self._target_pos_path[0]
-                if self.model.grid.is_cell_empty(new_pos):
-                    self.model.grid.move_agent(self, new_pos)
-                    self._target_pos_path = self._target_pos_path[1:]
-                    self._log("{}: Moving on path to {}, {} steps left.".format(self.name, new_pos, len(self._target_pos_path)), logging.DEBUG)
-            else:
-                self._move_towards_point(self._target_pos)
+        if self._battery_power <= self._battery_threshold:
+            self._log("Following recharge pf", logging.DEBUG)
+            self.follow_pf(self._recharge_pf.field)
+        elif self.resource_count == self.capacity:
+            self._log("Following drop pf", logging.DEBUG)
+            self.follow_pf(self._drop_pf.field)
         else:
-            super(AgentCoopa, self).move()
+            self._log("Following resource pf", logging.DEBUG)
+            self.follow_pf(self._resource_pf.field)
+
+    def follow_pf(self, pf):
+        """Follow given potential field to the descending direction, cells with -1 as values are thought to be
+        impassable.
+        """
+        current_min = pf[self.pos]
+        min_deltas = [(0, 0)]
+        for delta in clock_wise:
+            new_pos = (self.pos[0] + delta[0], self.pos[1] + delta[1])
+            if 0 <= new_pos[0] < pf.shape[0] and 0 <= new_pos[1] < pf.shape[1]:
+                current = pf[new_pos]
+                if self._map['impassable'][new_pos] == -1:
+                    # Impassable terrain
+                    pass
+                elif current < current_min:
+                    current_min = current
+                    min_deltas = [delta]
+                elif current == current_min:
+                    min_deltas.append(delta)
+
+        delta = random.choice(min_deltas)
+        new_pos = (self.pos[0] + delta[0], self.pos[1] + delta[1])
+        if new_pos != self.pos:
+            self.model.grid.move_agent(self, new_pos)
 
     def _move_towards_point(self, point):
         possible_steps = []
@@ -198,13 +257,18 @@ class AgentCoopa(AgentBasic):
     def update_maps(self, objects):
         """Update agents internal maps with given objects.
         """
+        belief_changed = False
         for obj in objects:
             x, y = obj.pos
             # Update impassable map
             if type(obj) in self._impassables:
-                self._map['impassable'][x][y] = 1
+                if self._map['impassable'][x][y] == 0:
+                    self._map['impassable'][x][y] = -1
+                    belief_changed = True
             else:
-                self._map['impassable'][x][y] = 0
+                if self._map['impassable'][x][y] != 0:
+                    self._map['impassable'][x][y] = 0
+                    belief_changed = True
             # Update map of seen cells
             if type(obj).__name__ is 'emptyclass':
                 self._map['seen'][x][y] = None
@@ -212,6 +276,8 @@ class AgentCoopa(AgentBasic):
                 self._map['seen'][x][y] = type(obj)
             # Update the time that cell was seen
             self._map['seen_time'][x][y] = self._meta_system._clock
+
+        return belief_changed
 
     def filter_neighbors(self, objects):
         """Return only the objects that are currently neighboring the agent.
@@ -223,17 +289,18 @@ class AgentCoopa(AgentBasic):
         return neighbors
 
     def process(self): #default GOAL: find resources and pick
-        objects = self._get_neighborhood_objects()
-        visible_objects = self._filter_nonvisible_objects(objects)
-        neighbors = self.filter_neighbors(visible_objects)
-        self.update_maps(visible_objects)
 
-        for neighbor in neighbors:
+        for neighbor in self._current_neighbors:
             if type(neighbor) is Resource:
                 # Collect resources in the neighborhood
                 if self._resource_count < self._capacity:
+                    nb_pos = neighbor.pos
                     self._resource_count += 1
                     self.model.grid.remove_agent(neighbor)
+                    # Free the cell from the internal maps
+                    #self._map['seen'][nb_pos] = None
+                    #self._map['impassable'][nb_pos] = 0
+                    #belief_changed = True
 
             elif type(neighbor) is DropPoint:
                 # Drop resources to a drop point.

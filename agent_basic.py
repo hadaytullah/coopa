@@ -6,9 +6,10 @@ import random
 
 
 class AgentBasic(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model)
         self._resource_count = 0 #random.choice([0,5])
+        self._log_path = log_path
        
     @property
     def resource_count(self):
@@ -25,9 +26,12 @@ class AgentBasic(Agent):
         self._resource_count -= num
 
     def step(self):
-       
+        self.observe()
         self.move()
         self.process()
+
+    def observe(self):
+        pass
 
     def move(self):
         #moore: up,down,left,right and diagonal movements

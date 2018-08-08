@@ -11,6 +11,8 @@ class PotentialField:
     """
 
     def __init__(self, width, height):
+        self.width = width
+        self.height = height
         self._pf = np.zeros((width, height))
 
     @property

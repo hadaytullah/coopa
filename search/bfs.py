@@ -15,33 +15,15 @@ clock_wise = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -
 clock_wise4 = [(-1, 0), (0, 1), (1, 0), (0, -1)]
 
 
-class SearchNode:
-
-    def __init__(self, pos, prev, f=MAX_DIST):
-        self.x = pos[0]
-        self.y = pos[1]
-        self.pos = tuple(pos)
-        self.prev = prev
-        self.f = f
-
-    def __eq__(self, other):
-        if self.pos == other.pos:
-            return True
-        return False
-
-    def __hash__(self):
-        return self.x * MAX_DIM + self.y
-
-
-def get_neighbors(map, pos, moore=True):
+def get_neighbors(map, appended, pos, moore=True):
     n_deltas = clock_wise if moore else clock_wise4
     neighbors = []
     for delta in n_deltas:
         new_pos = (pos[0] + delta[0], pos[1] + delta[1])
-        if 0 <= new_pos[0] < map.shape[0] and 0 <= new_pos[1] < map.shape[1]:
+        if 0 <= new_pos[0] < map.shape[0] and 0 <= new_pos[1] < map.shape[1] and new_pos not in appended:
             # Passable cells are marked as zeros
             if map[new_pos] == 0:
-                neighbors.append((pos[0] + delta[0], pos[1] + delta[1]))
+                neighbors.append(new_pos)
     # We could probably shuffle the neighbors to get rid of some deterministic behavior.
     return neighbors
 
@@ -51,35 +33,33 @@ def bfs(map, goal, moore=True):
     """
     distances = np.zeros(map.shape)
     distances -= 1
-    open = deque([SearchNode(goal, None, f=0)])
-    closed = {}
+    open = deque([(goal, 0)])
+    appended = set([goal])
+    nodes_appended = 1
 
     while len(open) > 0:
         current = open.pop()
 
-        for n_pos in get_neighbors(map, current.pos, moore=moore):
-            new_node = SearchNode(n_pos, current, f=current.f + 1)
-            if n_pos in closed:
-                closed_node = closed[n_pos]
-                if new_node.f < closed_node.f:
-                    del closed[n_pos]
-                    open.appendleft(new_node)
-                    distances[new_node.pos] = new_node.f
-            else:
+        for n_pos in get_neighbors(map, appended, current[0], moore=moore):
+            new_node = (n_pos, current[1] + 1)
+            if n_pos not in appended:
                 open.appendleft(new_node)
+                appended.add(n_pos)
+                nodes_appended += 1
 
-        closed[current.pos] = current
-        if distances[current.pos] == -1:
-            distances[current.pos] = current.f
-        elif distances[current.pos] > current.f:
-            distances[current.pos] = current.f
-
+        if distances[current[0]] == -1:
+            distances[current[0]] = current[1]
+        elif distances[current[0]] > current[1]:
+            distances[current[0]] = current[1]
+    # print(nodes_appended)
     return distances
 
 
 if __name__ == "__main__":
     import time
-    map = np.zeros((10, 10))
+
+    np.set_printoptions(threshold=np.nan, linewidth=200)
+    map = np.zeros((60, 60))
     map[3, 3:9] = 1
     map[1:9, 3] = 1
     map[3:5, 8] = 1
@@ -88,7 +68,7 @@ if __name__ == "__main__":
     t = time.monotonic()
     map2 = bfs(map, goal, moore=True)
     print(time.monotonic() - t)
-    print(map2)
+    #print(map2)
 
     goal = (9, 0)
     t = time.monotonic()
@@ -96,7 +76,7 @@ if __name__ == "__main__":
     print(time.monotonic() - t)
     print(map3)
     map4 = np.minimum(map2, map3)
-    print(map4)
+    #print(map4)
 
 
 

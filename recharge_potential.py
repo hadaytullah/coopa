@@ -12,7 +12,7 @@ class RechargePotentialField(PotentialField):
     """
 
     def __init__(self, width, height, recharge_points):
-        super.__init__(width, height)
+        super().__init__(width, height)
         self._rps = set(recharge_points)
 
     @property
@@ -42,7 +42,8 @@ class RechargePotentialField(PotentialField):
                              .format(map.shape, self.field.shape))
 
         if len(self._rps) == 0:
-            raise ValueError("Cannot compute the potential field because the set of recharge points is empty.")
+            self._pf = np.zeros((self.width, self.height))
+            return
 
         rp_fields = []
         for rp in self._rps:
