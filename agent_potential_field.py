@@ -130,7 +130,7 @@ class AgentPotentialField(AgentBasic):
         """Drain battery based on the current agent configuration (speed, scan radius, etc.).
         """
         scan_drain = (self.scan_radius - 1) ** 1.5  # Magic number
-        scan_drain = 1
+        scan_drain = 0
         speed_drain = self._speed  # Currently agents have fixed speed
         self._battery_power -= scan_drain + speed_drain
 
