@@ -10,7 +10,6 @@ from message import Message
 from cooperation import Cooperation
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
-from recharge_potential import RechargePotentialField
 
 
 class MetaSystem:

@@ -12,7 +12,7 @@ from cooperation import Cooperation
 from pf_metasystem import PotentialFieldMetaSystem
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
-from recharge_potential import RechargePotentialField
+from recharge_potential import HotSpotPotentialField
 from wall import Wall
 import search
 from utils import get_line, create_logger
@@ -70,11 +70,11 @@ class AgentPotentialField(AgentBasic):
         self._grid = model.grid
 
         # Different potential fields which agent uses to move in different situations.
-        self._recharge_pf = RechargePotentialField(self._grid.width, self._grid.height, [self._recharge_point])
+        self._recharge_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [self._recharge_point])
         self._recharge_pf.update(self._map['impassable'])
-        self._drop_pf = RechargePotentialField(self._grid.width, self._grid.height, [self._drop_point])
+        self._drop_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [self._drop_point])
         self._drop_pf.update(self._map['impassable'])
-        self._resource_pf = RechargePotentialField(self._grid.width, self._grid.height, [])
+        self._resource_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
 
     def step(self):
         if self._battery_power > 0:
@@ -277,7 +277,7 @@ class AgentPotentialField(AgentBasic):
                 old = self._map['seen'][x][y]
                 self._map['seen'][x][y] = type(obj)
                 if type(obj) == Resource and old is None:
-                    self._resource_pf.add_recharge_point(obj.pos)
+                    self._resource_pf.add_hot_spot(obj.pos)
                     belief_changed = True
             # Update the time that cell was seen
             self._map['seen_time'][x][y] = self._meta_system._clock
@@ -305,7 +305,7 @@ class AgentPotentialField(AgentBasic):
                     # Free the cell from the internal maps
                     self._map['seen'][nb_pos] = None
                     self._map['impassable'][nb_pos] = 0
-                    self._resource_pf.remove_recharge_point(nb_pos)
+                    self._resource_pf.remove_hot_spot(nb_pos)
                     self._resource_pf.update(self._map['impassable'])
                     self._recharge_pf.update(self._map['impassable'])
                     self._drop_pf.update(self._map['impassable'])
