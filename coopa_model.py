@@ -2,7 +2,7 @@ import logging
 import time
 
 from mesa import Model
-from resource import Resource
+from trash import Trash
 from drop_point import DropPoint
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid
@@ -16,7 +16,7 @@ import utils
 
 
 def compute_gini(model):
-    agent_resources = [agent.resource_count for agent in model.schedule.agents]
+    agent_resources = [agent.trash_count for agent in model.schedule.agents]
     x = sorted(agent_resources)
     N = model.num_agents
     if sum(x) > 0:
@@ -26,9 +26,9 @@ def compute_gini(model):
         return 0
 
 
-def compute_dropped_resources(model):
-    drop_point_resources = [dp.resource_count for dp in model.drop_points]
-    return sum(drop_point_resources)
+def compute_dropped_trashes(model):
+    drop_point_trashes = [dp.trash_count for dp in model.drop_points]
+    return sum(drop_point_trashes)
 
 
 def compute_average_battery_power(model):
@@ -70,7 +70,7 @@ class CoopaModel(Model):
         self.grid.place_agent(self.recharge_points[0], (55,5))
 
         # Place resources tactically
-        self._context.place_few_resource_in_all_rooms(self)
+        self._context.place_few_trash_in_all_rooms(self)
 
         # the mighty agents arrive
         for i in range(self.num_agents):
@@ -79,12 +79,12 @@ class CoopaModel(Model):
             self.grid.position_agent(a)
 
         self.datacollector = DataCollector(
-            model_reporters={"Gini": compute_gini,
-                             "Drop point resources": compute_dropped_resources,
+            model_reporters={"Drop point trashes": compute_dropped_trashes,
                              "Average battery power": compute_average_battery_power,
                              "Max battery power": compute_max_battery_power,
                              "Min battery power": compute_min_battery_power},
-            agent_reporters={"Resource": "resource_count"})  # An agent attribute
+            # agent_reporters={"Trash": "trash_count"}
+            ) # An agent attribute
 
         self.name = "CoopaModel"
         self._logger = utils.create_logger(self.name, log_path=log_path)

@@ -1,7 +1,7 @@
 from agent_coopa import AgentCoopa
 from agent_basic import AgentBasic
 from agent_potential_field import AgentPotentialField
-from resource import Resource
+from trash import Trash
 from drop_point import DropPoint
 from wall import Wall
 from recharge_point import RechargePoint
@@ -23,7 +23,7 @@ PORTRAYALS = {
         "Layer": 0,
         "r": 0.8
     },
-    Resource: {
+    Trash: {
         "Color": "red",
         "Layer": 0
     },

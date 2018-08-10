@@ -13,7 +13,7 @@ agent_type = UserSettableParameter('choice', 'Agent type', value=sorted(AGENT_TY
 
 
 grid = CanvasGrid(agent_portrayal, 60, 60, 600, 600)
-chart = ChartModule([{"Label": "Drop point resources",
+chart = ChartModule([{"Label": "Drop point trashes",
                       "Color": "Black"}],
                     data_collector_name='datacollector')
 

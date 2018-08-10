@@ -4,7 +4,7 @@ from collections import deque
 
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
-from resource import Resource
+from trash import Trash
 from drop_point import DropPoint
 from message import Message
 from cooperation import Cooperation
@@ -13,19 +13,19 @@ from recharge_point import RechargePoint
 
 
 class MetaSystem:
-    """Metasubsystem for the agent, which holds the different awarenesses and how they are intertwined together.
+    """Meta-subsystem for the agent. Meta-subsystem contains individual awarenesses and orchestrates their interplay.
     """
 
     def __init__(self, agent):
         self._agent = agent
         self._cooperation = {}
         self._knowledge_base = KnowledgeBase()
-        self._current_goal = self._knowledge_base.goals['find_resource']
+        self._current_goal = self._knowledge_base.goals['find_trash']
         self._clock = 0
         
         # time awareness
-        self._time_resource_found = self._clock
-        self._agent_resource_count_history = self._agent.resource_count
+        self._time_trash_found = self._clock
+        self._agent_trash_count_history = self._agent.trash_count
         # queue to maintain last 10 positions
         self._agent_position_history = deque([(0, 0)], 10)
 
@@ -49,10 +49,10 @@ class MetaSystem:
 
     def _time_awareness_step(self):
         #TODO: do it properly. This is a quick solution to facilitate domain awareness
-        if self._agent.resource_count > self._agent_resource_count_history:
+        if self._agent.trash_count > self._agent_trash_count_history:
             # a resource has been found, take a note of it
-            self._agent_resource_count_history = self._agent.resource_count
-            self._time_resource_found = self._clock
+            self._agent_trash_count_history = self._agent.trash_count
+            self._time_trash_found = self._clock
         
         # position history 
         # TODO: move to knowledge base?
@@ -63,7 +63,7 @@ class MetaSystem:
         # going far from current location improves the 
         # chances to find interesting things
         # WITH hiatus between applications of the strategy, otherwise, it keeps on chaning the target point
-        if self._clock - self._time_resource_found > 100 and self._clock - self._time_domain_strategy_applied > 140: 
+        if self._clock - self._time_trash_found > 100 and self._clock - self._time_domain_strategy_applied > 140:
             self._time_domain_strategy_applied = self._clock
             print("It has been long time since last resource was discovered.")
             #long time no (resource) see
@@ -115,12 +115,12 @@ class MetaSystem:
             if self._agent.pos[0] is self._agent.target_pos[0] and self._agent.pos[1] is self._agent.target_pos[1]:
                 self._agent.target_pos = None
         
-        if self._current_goal['name'] is 'find_resource':
-            if self._agent.resource_count >= self._agent.capacity:
+        if self._current_goal['name'] is 'find_trash':
+            if self._agent.trash_count >= self._agent.trash_capacity:
                 self._current_goal = self._knowledge_base.goals[self._knowledge_base.goals[self._current_goal['name']]['next_goal']]
-            elif len(self._knowledge_base.resource_positions) > 0:
+            elif len(self._knowledge_base.trash_positions) > 0:
                 #pict the last logged position as a target position
-                self._agent.target_pos = self._knowledge_base.resource_positions[-1]
+                self._agent.target_pos = self._knowledge_base.trash_positions[-1]
     
         elif self._current_goal['name'] is 'find_drop_point':
             neighbors = self._agent.model.grid.get_neighbors(self._agent.pos, moore=True, include_center=False, radius=1)
@@ -140,8 +140,8 @@ class MetaSystem:
     def _cooperation_awareness_step(self):
         neighbors = self._agent.model.grid.get_neighbors(self._agent.pos, moore=True, include_center=False, radius=1)
         for neighbor in neighbors:
-            if type(neighbor) is Resource:
-                self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'resource', self._agent.pos[0], self._agent.pos[1]))
+            if type(neighbor) is Trash:
+                self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'trash', self._agent.pos[0], self._agent.pos[1]))
             elif type(neighbor) is DropPoint:
                 self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'drop_point', self._agent.pos[0], self._agent.pos[1]))
             elif type(neighbor) is RechargePoint:
@@ -163,9 +163,9 @@ class MetaSystem:
             
             # collect data from the message, the data will influence other awarenesses
             if self._cooperation[message.sender.unique_id].trust > 3: #ignore non trust worthy
-                if message.position_of is 'resource':
+                if message.position_of is 'trash':
                     # we must tag data with agent ids. So we can remove the data of an agent that becomes non-trustworthy. 
-                    self._knowledge_base.resource_positions.append([message.x, message.y])
+                    self._knowledge_base.trash_positions.append([message.x, message.y])
                     #self._goals['find_resource']['pos'] = [message.x, message.y]
                 elif message.position_of is 'drop_point':
                     self._knowledge_base.drop_point_positions.append([message.x, message.y])

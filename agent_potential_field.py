@@ -5,7 +5,7 @@ import logging
 
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
-from resource import Resource
+from trash import Trash
 from drop_point import DropPoint
 from message import Message
 from cooperation import Cooperation
@@ -16,10 +16,6 @@ from recharge_potential import HotSpotPotentialField
 from wall import Wall
 import search
 from utils import get_line, create_logger
-
-# Clock wise index differences from a center point, starting from the upper left corner.
-clock_wise = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
-clock_wise4 = [(-1, 0), (0, 1), (1, 0), (0, -1)]
 
 
 class AgentPotentialField(AgentBasic):
@@ -32,18 +28,17 @@ class AgentPotentialField(AgentBasic):
         self.name = "AgentPF#{:0>3}".format(self.unique_id)
         self._logger = create_logger(self.name, log_path=log_path)
 
-        self._capacity = 1
-        # self._capacity = random.choice([1, 2, 3])
         self._meta_system = PotentialFieldMetaSystem(self)
 
         # Map with different layers
         self._map = {}
-        self._impassables = [Wall, DropPoint, RechargePoint, Resource]
+        self._impassables = [Wall, DropPoint, RechargePoint, Trash]
         # Initialize the whole environment to be thought to be an empty grid. The belief of the environment state is
         # then updated through observations
         self._map['impassable'] = np.zeros((model.grid.width, model.grid.height))
         self._map['seen'] = np.full((model.grid.width, model.grid.height), None)
-        self._map['seen_time'] = np.zeros((model.grid.width, model.grid.height))
+        # -1 means not seen at all
+        self._map['seen_time'] = np.zeros((model.grid.width, model.grid.height)) - 1
 
         # Agent next target position (cell) and a possible path to it (if computed).
         self._target_pos = None
@@ -63,8 +58,11 @@ class AgentPotentialField(AgentBasic):
         self._map['impassable'][self._drop_point] = -1
         self._map['seen'][self._drop_point] = DropPoint
 
+        # List of current neighboring objects, populated on each step by 'observe' and used by 'process'.
         self._current_neighbors = None
 
+        self._trash_capacity = 1  # Trash carrying capacity
+        # self._capacity = random.choice([1, 2, 3])
         self._speed = 1
         self._scan_radius = 1
         self._grid = model.grid
@@ -74,7 +72,7 @@ class AgentPotentialField(AgentBasic):
         self._recharge_pf.update(self._map['impassable'])
         self._drop_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [self._drop_point])
         self._drop_pf.update(self._map['impassable'])
-        self._resource_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
+        self._trash_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
 
     def step(self):
         if self._battery_power > 0:
@@ -83,10 +81,10 @@ class AgentPotentialField(AgentBasic):
                 super(AgentPotentialField, self).step()
                 self.drain_battery()
             else:
-                self._log("{} is recharging.".format(self.name), logging.INFO)
+                self._log("Recharging...", logging.INFO)
                 self.recharge_battery()
         else:
-            self._log("{} out of power.".format(self.name), logging.WARNING)
+            self._log("Out of power.", logging.WARNING)
 
     def receive(self, message):
         self._meta_system.cooperation_awareness(message) #have to improve this, temporary solution
@@ -99,20 +97,8 @@ class AgentPotentialField(AgentBasic):
             self._target_pos = None
 
     @property
-    def target_pos(self):
-        return self._target_pos
-
-    @target_pos.setter
-    def target_pos(self, position):
-        self._target_pos = position
-        if self._target_pos is not None:
-            # Ensure that all positions are marked as tuples.
-            self._target_pos = tuple(self._target_pos)
-            self._target_pos_path = search.astar(self._map['impassable'], self.pos, self._target_pos)[1:-1]
-
-    @property
-    def capacity(self):
-        return self._capacity
+    def trash_capacity(self):
+        return self._trash_capacity
     
     @property
     def battery_power(self):
@@ -125,6 +111,18 @@ class AgentPotentialField(AgentBasic):
     @property
     def scan_radius(self):
         return self._scan_radius
+
+    @property
+    def target_pos(self):
+        return self._target_pos
+
+    @target_pos.setter
+    def target_pos(self, position):
+        self._target_pos = position
+        if self._target_pos is not None:
+            # Ensure that all positions are marked as tuples.
+            self._target_pos = tuple(self._target_pos)
+            self._target_pos_path = search.astar(self._map['impassable'], self.pos, self._target_pos)[1:-1]
 
     def drain_battery(self):
         """Drain battery based on the current agent configuration (speed, scan radius, etc.).
@@ -145,71 +143,23 @@ class AgentPotentialField(AgentBasic):
             self._log("Belief of environment changed: Updating potential fields", logging.INFO)
             self._recharge_pf.update(self._map['impassable'])
             self._drop_pf.update(self._map['impassable'])
-            self._resource_pf.update(self._map['impassable'])
+            self._trash_pf.update(self._map['impassable'])
 
     def move(self):
         if self._battery_power <= self._battery_threshold:
             self._log("Following recharge pf", logging.DEBUG)
-            self.follow_pf(self._recharge_pf.field)
-        elif self.resource_count == self.capacity:
+            new_pos = self._recharge_pf.follow(self.pos, self._map['impassable'])
+        elif self.trash_count == self.trash_capacity:
             self._log("Following drop pf", logging.DEBUG)
-            self.follow_pf(self._drop_pf.field)
+            new_pos = self._drop_pf.follow(self.pos, self._map['impassable'])
+            #self.follow_pf(self._drop_pf.field)
         else:
-            self._log("Following resource pf", logging.DEBUG)
-            self.follow_pf(self._resource_pf.field)
+            self._log("Following trash pf", logging.DEBUG)
+            new_pos = self._trash_pf.follow(self.pos, self._map['impassable'])
+            #self.follow_pf(self._resource_pf.field)
 
-    def follow_pf(self, pf):
-        """Follow given potential field to the descending direction, cells with -1 as values are thought to be
-        impassable.
-        """
-        current_min = pf[self.pos]
-        min_deltas = [(0, 0)]
-        for delta in clock_wise:
-            new_pos = (self.pos[0] + delta[0], self.pos[1] + delta[1])
-            if 0 <= new_pos[0] < pf.shape[0] and 0 <= new_pos[1] < pf.shape[1]:
-                current = pf[new_pos]
-                if self._map['impassable'][new_pos] == -1:
-                    # Impassable terrain
-                    pass
-                elif current < current_min:
-                    current_min = current
-                    min_deltas = [delta]
-                elif current == current_min:
-                    min_deltas.append(delta)
-
-        delta = random.choice(min_deltas)
-        new_pos = (self.pos[0] + delta[0], self.pos[1] + delta[1])
         if new_pos != self.pos:
             self.model.grid.move_agent(self, new_pos)
-
-    def _move_towards_point(self, point):
-        possible_steps = []
-        for cell in self.model.grid.iter_neighborhood(self.pos, moore=True):
-            #print('cell is empty {}'.format(cell))
-            if self.model.grid.is_cell_empty(cell):
-                #print('cell is empty {}'.format(cell))
-                possible_steps.append(cell)
-
-        if len(possible_steps) > 0:
-            # find the step that takes the agent closer to a resource
-            # assuming that other resources exisits in proximity of a found resource
-            x_distance_shortest = abs(possible_steps[0][0] - point[0])
-            y_distance_shortest = abs(possible_steps[0][1] - point[1])
-            new_position = possible_steps[0]
-
-            for step in possible_steps:
-                x_distance = abs(step[0] - point[0])
-                y_distance = abs(step[1] - point[1])
-                #print('step:{}, x_distance:{} , y_distance:{}'.format(step, x_distance, y_distance))
-                if x_distance <= x_distance_shortest and y_distance <= y_distance_shortest:
-                    new_position = step
-                    #print('new position for agent#{}: {}'.format(self.unique_id, new_position))
-                    x_distance_shortest = x_distance
-                    y_distance_shortest = y_distance
-
-            #new_position = random.choice(possible_steps)
-            #print('new position for agent#{}: {}'.format(self.unique_id, new_position))
-            self.model.grid.move_agent(self, new_position)
 
     def _filter_nonvisible_objects(self, objects):
         """Filters the objects the agent can't see from the objects list."""
@@ -276,8 +226,8 @@ class AgentPotentialField(AgentBasic):
             else:
                 old = self._map['seen'][x][y]
                 self._map['seen'][x][y] = type(obj)
-                if type(obj) == Resource and old is None:
-                    self._resource_pf.add_hot_spot(obj.pos)
+                if isinstance(obj, Trash) and old is None:
+                    self._trash_pf.add_hot_spot(obj.pos)
                     belief_changed = True
             # Update the time that cell was seen
             self._map['seen_time'][x][y] = self._meta_system._clock
@@ -293,29 +243,34 @@ class AgentPotentialField(AgentBasic):
                 neighbors.append(obj)
         return neighbors
 
-    def process(self): #default GOAL: find resources and pick
+    def process(self):
+        """Process agent's current situation, i.e. its current neighbors.
 
+        Process is executed after moving on each time step.
+        """
+
+        # TODO: pick up all trash before processing drop point.
         for neighbor in self._current_neighbors:
-            if type(neighbor) is Resource:
+            if isinstance(neighbor, Trash):
                 # Collect resources in the neighborhood
-                if self._resource_count < self._capacity:
+                if self._trash_count < self._trash_capacity:
                     nb_pos = neighbor.pos
-                    self._resource_count += 1
+                    self._trash_count += 1
                     self.model.grid.remove_agent(neighbor)
                     # Free the cell from the internal maps
                     self._map['seen'][nb_pos] = None
                     self._map['impassable'][nb_pos] = 0
-                    self._resource_pf.remove_hot_spot(nb_pos)
-                    self._resource_pf.update(self._map['impassable'])
+                    self._trash_pf.remove_hot_spot(nb_pos)
+                    self._trash_pf.update(self._map['impassable'])
                     self._recharge_pf.update(self._map['impassable'])
                     self._drop_pf.update(self._map['impassable'])
 
-            elif type(neighbor) is DropPoint:
+            elif isinstance(neighbor, DropPoint):
                 # Drop resources to a drop point.
-                neighbor.add_resources(self._resource_count)
-                self._resource_count = 0
+                neighbor.pick_trash(self._trash_count)
+                self._trash_count = 0
             
-            elif type(neighbor) is RechargePoint:
+            elif isinstance(neighbor, RechargePoint):
                 # Recharge
                 if self._battery_power < 120:
                     self._is_recharging = True
@@ -326,7 +281,7 @@ class AgentPotentialField(AgentBasic):
         self._logger.log(lvl, msg, extra={'clock': self.model._clock})
 
     def __repr__(self):
-        return "{}(bp:{:.2f}, rc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.resource_count,
+        return "{}(bp:{:.2f}, tc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.trash_count,
                                                                   self.pos, self.target_pos, self._meta_system._current_goal)
 
     def __str__(self):

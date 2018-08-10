@@ -5,7 +5,7 @@ import logging
 
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
-from resource import Resource
+from trash import Trash
 from drop_point import DropPoint
 from message import Message
 from cooperation import Cooperation
@@ -25,12 +25,12 @@ class AgentCoopa(AgentBasic):
 
         model.message_dispatcher.register(self)
         self.name = "AgentCoopa#{:0>3}".format(self.unique_id)
-        self._capacity = random.choice([1, 2, 3])
+        self._trash_capacity = random.choice([1, 2, 3])
         self._meta_system = MetaSystem(self)
 
         # Map with different layers
         self._map = {}
-        self._impassables = [Wall, DropPoint, RechargePoint, Resource]
+        self._impassables = [Wall, DropPoint, RechargePoint, Trash]
         # Create map of the environment for the agent, i.e. the agent knows its environment beforehand
         self._map['impassable'] = search.build_map(model.grid, self._impassables)
         self._map['seen'] = np.full((model.grid.width, model.grid.height), None)
@@ -86,8 +86,8 @@ class AgentCoopa(AgentBasic):
             self._target_pos_path = search.astar(self._map['impassable'], self.pos, self._target_pos)[1:-1]
 
     @property
-    def capacity(self):
-        return self._capacity
+    def trash_capacity(self):
+        return self._trash_capacity
     
     @property
     def battery_power(self):
@@ -229,16 +229,16 @@ class AgentCoopa(AgentBasic):
         self.update_maps(visible_objects)
 
         for neighbor in neighbors:
-            if type(neighbor) is Resource:
+            if type(neighbor) is Trash:
                 # Collect resources in the neighborhood
-                if self._resource_count < self._capacity:
-                    self._resource_count += 1
+                if self._trash_count < self._trash_capacity:
+                    self._trash_count += 1
                     self.model.grid.remove_agent(neighbor)
 
             elif type(neighbor) is DropPoint:
                 # Drop resources to a drop point.
-                neighbor.add_resources(self._resource_count)
-                self._resource_count = 0
+                neighbor.pick_trash(self._trash_count)
+                self._trash_count = 0
             
             elif type(neighbor) is RechargePoint:
                 # Recharge
@@ -251,7 +251,7 @@ class AgentCoopa(AgentBasic):
         self._logger.log(lvl, msg, extra={'clock': self.model._clock})
 
     def __repr__(self):
-        return "{}(bp:{:.2f}, rc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.resource_count,
+        return "{}(bp:{:.2f}, tc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.trash_count,
                                                                   self.pos, self.target_pos, self._meta_system._current_goal)
 
     def __str__(self):

@@ -1,8 +1,4 @@
-from agent_basic import AgentBasic
-from mesa.time import RandomActivation
-from resource import Resource
-from drop_point import DropPoint
-import random
+
 
 # TODO: add cooperation awareness
 class Message:
@@ -12,22 +8,20 @@ class Message:
         self._x = x
         self._y = y
 
-
-
     @property
-    def sender (self):
+    def sender(self):
         return self._sender
 
     @property
-    def position_of (self):
+    def position_of(self):
         return self._position_of
 
     @property
-    def x (self):
+    def x(self):
         return self._x
 
     @property
-    def y (self):
+    def y(self):
         return self._y
 
 

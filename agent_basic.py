@@ -1,6 +1,6 @@
 from mesa import Agent
 from mesa.time import RandomActivation
-from resource import Resource
+from trash import Trash
 from drop_point import DropPoint
 import random
 
@@ -8,22 +8,22 @@ import random
 class AgentBasic(Agent):
     def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model)
-        self._resource_count = 0 #random.choice([0,5])
+        self._trash_count = 0
         self._log_path = log_path
        
     @property
-    def resource_count(self):
-        return self._resource_count
+    def trash_count(self):
+        return self._trash_count
     
     @property
     def battery_power(self):
         return self._battery_power
 
-    def add_resources(self, num):
-        self._resource_count += num
+    def pick_trash(self, num):
+        self._trash_count += num
 
-    def remove_resources(self, num):
-        self._resource_count -= num
+    def drop_trash(self, num):
+        self._trash_count -= num
 
     def step(self):
         self.observe()
@@ -48,29 +48,29 @@ class AgentBasic(Agent):
             self.model.grid.move_agent(self, new_position)
 
     def process(self):
-        print('AgentBasic#%s, before resource_count, %i' %(self.unique_id,self._resource_count))
+        print('AgentBasic#%s, before trash_count, %i' % (self.unique_id,self._trash_count))
         #cellmates = self.model.grid.get_cell_list_contents([self.pos])
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=1)
         for neighbor in neighbors:
-            if type(neighbor) is Resource:
-                self._resource_count += 1
+            if type(neighbor) is Trash:
+                self._trash_count += 1
                 self.model.grid.remove_agent(neighbor)
             elif type(neighbor) is DropPoint:
-                neighbor.add_resources(self._resource_count)
-                self._resource_count = 0
+                neighbor.pick_trash(self._trash_count)
+                self._trash_count = 0
 
-        print('AgentBasic#%s, after resource_count, %i' %(self.unique_id,self._resource_count))
+        print('AgentBasic#%s, after trash_count, %i' % (self.unique_id, self._trash_count))
 
     def process_(self):
-        print('AgentBasic#%s, before resource_count, %i' %(self.unique_id,self._resource_count))
+        print('AgentBasic#%s, before trash_count, %i' % (self.unique_id, self._trash_count))
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         if len(cellmates) > 1:
             other = random.choice(cellmates)
-            if type(other) is Resource:
-                self._resource_count += 1
+            if type(other) is Trash:
+                self._trash_count += 1
                 self.model.grid.remove_agent(other)
             elif type(other) is DropPoint:
-                other.add_resources(self._resource_count)
-                self._resource_count = 0
+                other.pick_trash(self._trash_count)
+                self._trash_count = 0
 
-        print('AgentBasic#%s, after resource_count, %i' %(self.unique_id,self._resource_count))
+        print('AgentBasic#%s, after trash_count, %i' % (self.unique_id, self._trash_count))
