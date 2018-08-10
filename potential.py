@@ -53,7 +53,7 @@ class PotentialField:
         """Follow potential field from a given position to the descending direction.
 
         :param tuple pos: Current position.
-        :param impassable: Optional 2D numpy matrix where impassable cells are marked with -1.
+        :param impassable: Optional 2D numpy matrix where impassable cells are marked with values smaller than zero.
         :param bool moore: Are diagonal movements allowed (True) or not (False).
         """
         neighbor_deltas = clock_wise if moore else clock_wise4
@@ -64,7 +64,7 @@ class PotentialField:
             new_pos = (pos[0] + delta[0], pos[1] + delta[1])
             if 0 <= new_pos[0] < self._pf.shape[0] and 0 <= new_pos[1] < self._pf.shape[1]:
                 current = self._pf[new_pos]
-                if impassable is not None and impassable[new_pos] == -1:
+                if impassable is not None and impassable[new_pos] < 0:
                     # Impassable terrain
                     pass
                 elif current < current_min:

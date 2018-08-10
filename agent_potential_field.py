@@ -4,7 +4,6 @@ import numpy as np
 import logging
 
 from agent_basic import AgentBasic
-from mesa.time import RandomActivation
 from trash import Trash
 from drop_point import DropPoint
 from message import Message
