@@ -12,7 +12,7 @@ from cooperation import Cooperation
 from pf_metasystem import PotentialFieldMetaSystem
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
-from recharge_potential import HotSpotPotentialField
+from hot_spot_potential import HotSpotPotentialField
 from wall import Wall
 import search
 from utils import get_line, create_logger
