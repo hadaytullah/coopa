@@ -73,6 +73,9 @@ class AgentPotentialField(AgentBasic):
         self._drop_pf.update(self._map['impassable'])
         self._trash_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
 
+        # main potential field
+        self._potential_field = HotSpotPotentialField(self._grid.width, self._grid.height, [])
+        
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:
@@ -143,20 +146,30 @@ class AgentPotentialField(AgentBasic):
             self._recharge_pf.update(self._map['impassable'])
             self._drop_pf.update(self._map['impassable'])
             self._trash_pf.update(self._map['impassable'])
+        
+        self._update_potential_field()
+            
+    def _update_potential_field(self):
+        self._potential_field.merge(self._recharge_pf.field)
+        self._potential_field.merge(self._drop_pf.field)
+        self._potential_field.merge(self._trash_pf.field)
+            
 
     def move(self):
-        if self._battery_power <= self._battery_threshold:
-            self._log("Following recharge pf", logging.DEBUG)
-            new_pos = self._recharge_pf.follow(self.pos, self._map['impassable'])
-        elif self.trash_count == self.trash_capacity:
-            self._log("Following drop pf", logging.DEBUG)
-            new_pos = self._drop_pf.follow(self.pos, self._map['impassable'])
-            #self.follow_pf(self._drop_pf.field)
-        else:
-            self._log("Following trash pf", logging.DEBUG)
-            new_pos = self._trash_pf.follow(self.pos, self._map['impassable'])
-            #self.follow_pf(self._resource_pf.field)
-
+#        if self._battery_power <= self._battery_threshold:
+#            self._log("Following recharge pf", logging.DEBUG)
+#            new_pos = self._recharge_pf.follow(self.pos, self._map['impassable'])
+#        elif self.trash_count == self.trash_capacity:
+#            self._log("Following drop pf", logging.DEBUG)
+#            new_pos = self._drop_pf.follow(self.pos, self._map['impassable'])
+#            #self.follow_pf(self._drop_pf.field)
+#        else:
+#            self._log("Following trash pf", logging.DEBUG)
+#            new_pos = self._trash_pf.follow(self.pos, self._map['impassable'])
+#            #self.follow_pf(self._resource_pf.field)
+        self._log("Following the main pf", logging.DEBUG)
+        new_pos = self._potential_field.follow(self.pos, self._map['impassable'])
+        #self.follow_pf(self._resource_pf.field)
         if new_pos != self.pos:
             self.model.grid.move_agent(self, new_pos)
 
