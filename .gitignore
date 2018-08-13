@@ -71,8 +71,8 @@ logs/
 runs/
 
 #VS CODE
-.vscode/
-
+HotSpotPotentialField
+HotSpotPotentialField
 TODO
 COMMIT_MSG
 mgr_addrs.txt
