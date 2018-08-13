@@ -70,6 +70,9 @@ target/
 logs/
 runs/
 
+#VS CODE
+.vscode/
+
 TODO
 COMMIT_MSG
 mgr_addrs.txt
