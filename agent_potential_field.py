@@ -150,9 +150,13 @@ class AgentPotentialField(AgentBasic):
         self._update_potential_field()
             
     def _update_potential_field(self):
-        self._potential_field.merge(self._recharge_pf.field)
-        self._potential_field.merge(self._drop_pf.field)
-        self._potential_field.merge(self._trash_pf.field)
+        self._potential_field += self._recharge_pf
+        self._potential_field += self._drop_pf
+        self._potential_field += self._trash_pf
+
+        #self._potential_field.merge(self._recharge_pf.field)
+        #self._potential_field.merge(self._drop_pf.field)
+        #self._potential_field.merge(self._trash_pf.field)
             
 
     def move(self):

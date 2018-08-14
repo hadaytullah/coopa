@@ -77,9 +77,9 @@ class PotentialField:
         new_pos = (pos[0] + delta[0], pos[1] + delta[1])
         return new_pos
 
-    def merge(self, potential_field):
+    def __add__(self, potential_field):
         """Sums up 2D arrays of equal dimensions
         :param potential_field: 2D numpy matrix representing a potential field
         """
-        self._pf = np.matrix(self._pf) + np.matrix(potential_field)
-    
+        self._pf = np.matrix(self._pf) + np.matrix(potential_field.field)
+        return self
