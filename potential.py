@@ -81,5 +81,5 @@ class PotentialField:
         """Sums up 2D arrays of equal dimensions
         :param potential_field: 2D numpy matrix representing a potential field
         """
-        self._pf = np.matrix(self._pf) + np.matrix(potential_field.field)
+        self._pf = np.array(self._pf) + np.array(potential_field._pf)
         return self
