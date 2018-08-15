@@ -4,6 +4,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from coopa_model import CoopaModel
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
+from mesa.visualization.modules import HeatMapChartModule
 from ui_styling import agent_portrayal, PORTRAYALS, AGENT_TYPES
 
 n_slider = UserSettableParameter('slider', "Number of Agents", 1, 1, 200, 1)
@@ -26,8 +27,13 @@ chart2 = ChartModule([{"Label": "Average battery power",
                       ],
                     data_collector_name='datacollector')
 
+potentialMapChart = HeatMapChartModule([{"Label": "Potential field",
+                      "Color": "Black"}],
+                    data_collector_name='datacollector')
+
+
 server = ModularServer(CoopaModel,
-                       [grid, chart, chart2],
+                       [grid, chart, chart2, potentialMapChart],
                        "Coopa Model",
                        {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type, "log_path": None})
 

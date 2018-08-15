@@ -40,6 +40,10 @@ def compute_max_battery_power(model):
     bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
     return max(bps)
 
+def compute_potential_field (model):
+    potential_field = [ ]
+    return potential_field
+
 
 def compute_min_battery_power(model):
     bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
@@ -82,7 +86,8 @@ class CoopaModel(Model):
             model_reporters={"Drop point trashes": compute_dropped_trashes,
                              "Average battery power": compute_average_battery_power,
                              "Max battery power": compute_max_battery_power,
-                             "Min battery power": compute_min_battery_power},
+                             "Min battery power": compute_min_battery_power,
+                            "Potential field": compute_potential_field},
             # agent_reporters={"Trash": "trash_count"}
             ) # An agent attribute
 
