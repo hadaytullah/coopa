@@ -26,8 +26,13 @@ chart2 = ChartModule([{"Label": "Average battery power",
                       ],
                     data_collector_name='datacollector')
 
+#server = ModularServer(CoopaModel,
+#                       [grid, chart, chart2],
+#                       "Coopa Model",
+#                       {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type, "log_path": None})
+
 server = ModularServer(CoopaModel,
-                       [grid, chart, chart2],
+                       [grid],
                        "Coopa Model",
                        {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type, "log_path": None})
 

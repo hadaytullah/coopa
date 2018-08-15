@@ -48,8 +48,13 @@ class ExplorePotentialField(HotSpotPotentialField):
             # Remove border cells that are not reachable
             border_indices = [index for index in border_indices_t if dist_from_pos[tuple(index)] >= 0]
             if len(border_indices) == 0:
-                print("No unseen reachable cells left!")
-                self._hot_spots = set([])
+                # No unseen reachable cells left. Pick the cell that has been seen the longest time ago.
+                print("No unseen reachable cells left! Going for the earliest last seen cell.")
+                seen_indices = np.nonzero(seen_time >= 0)
+                # print(seen_time[seen_indices], seen_indices[0].shape)
+                argmin = np.argmin(seen_time[seen_indices[0], seen_indices[1]], axis=None)
+                print(argmin, (seen_indices[0][argmin], seen_indices[1][argmin]), seen_time[seen_indices[0][argmin], seen_indices[1][argmin]])
+                self._hot_spots = set([(seen_indices[0][argmin], seen_indices[1][argmin])])
                 super().update(map, moore=moore)
             else:
                 # Select border pixel which is closest to the agent's current position and put it as a hot spot.
