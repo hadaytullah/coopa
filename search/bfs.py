@@ -34,9 +34,10 @@ def get_neighbors(map, distances, appended, pos, moore=True):
 def bfs(map, goal, moore=True):
     """Compute the minimum distance to the goal from all cells in a given binary map.
 
-    :returns: Distance to every cell from the goal. If cell is next to reachable, but marked as impassable (-1), i.e.
-    a wall, the returned distance map shows -1. If the cell is not next to reachable and marked as impassable, the
-    returned distance map shows -2.
+    :returns:
+        Distance to every cell from the goal. If cell is next to reachable, but marked as impassable (-1), i.e. a wall,
+        the returned distance map shows -1. If the cell is not next to any reachable cell, the returned distance map
+        shows -2.
     """
     # Initialize distances so that all cells are though to be "inside wall", i.e. impassable and not next to any
     # passable cell.
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 
     np.set_printoptions(threshold=np.nan, linewidth=200)
     map = np.zeros((10, 10))
-    map[3, 3:10] = -1
+    map[3, 3:9] = -1
     map[0:9, 3] = -1
     map[3:5, 8] = -1
     print(map)
@@ -86,5 +87,9 @@ if __name__ == "__main__":
     map4 = np.minimum(map2, map3)
     #print(map4)
 
+    import cv2
+    already_seen = np.array(map3 >= 0, dtype=np.uint8)
+    dists = cv2.distanceTransform(already_seen, distanceType=cv2.DIST_C, maskSize=3)
+    print(dists)
 
 

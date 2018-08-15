@@ -12,6 +12,7 @@ from pf_metasystem import PotentialFieldMetaSystem
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
 from hot_spot_potential import HotSpotPotentialField
+from explore_potential import ExplorePotentialField
 from wall import Wall
 import search
 from utils import get_line, create_logger
@@ -72,6 +73,7 @@ class AgentPotentialField(AgentBasic):
         self._drop_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [self._drop_point])
         self._drop_pf.update(self._map['impassable'])
         self._trash_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
+        self._explore_pf = ExplorePotentialField(self._grid.width, self._grid.height, [])
 
     def step(self):
         if self._battery_power > 0:
@@ -129,6 +131,7 @@ class AgentPotentialField(AgentBasic):
         scan_drain = (self.scan_radius - 1) ** 1.5  # Magic number
         scan_drain = 0
         speed_drain = self._speed  # Currently agents have fixed speed
+        speed_drain = 0.1
         self._battery_power -= scan_drain + speed_drain
 
     def observe(self):
@@ -139,22 +142,35 @@ class AgentPotentialField(AgentBasic):
 
         # Update potential fields.
         if belief_changed:
+            '''
             self._log("Belief of environment changed: Updating potential fields", logging.INFO)
             self._recharge_pf.update(self._map['impassable'])
             self._drop_pf.update(self._map['impassable'])
             self._trash_pf.update(self._map['impassable'])
+            self._explore_pf.update(self._map['impassable'], self.model._clock, self._map['seen_time'])
+            '''
+        #np.set_printoptions(threshold=np.nan, linewidth=220, precision=0)
+        #print(self._map['impassable'])
 
     def move(self):
         if self._battery_power <= self._battery_threshold:
+            self._recharge_pf.update(self._map['impassable'])
             self._log("Following recharge pf", logging.DEBUG)
             new_pos = self._recharge_pf.follow(self.pos, self._map['impassable'])
         elif self.trash_count == self.trash_capacity:
+            self._drop_pf.update(self._map['impassable'])
             self._log("Following drop pf", logging.DEBUG)
             new_pos = self._drop_pf.follow(self.pos, self._map['impassable'])
             #self.follow_pf(self._drop_pf.field)
-        else:
+        elif len(self._trash_pf.hot_spots) > 0:
+            self._trash_pf.update(self._map['impassable'])
             self._log("Following trash pf", logging.DEBUG)
             new_pos = self._trash_pf.follow(self.pos, self._map['impassable'])
+            #self.follow_pf(self._resource_pf.field)
+        else:
+            self._explore_pf.update(self._map['impassable'], self.pos, self.model._clock, self._map['seen_time'])
+            self._log("Following explore pf", logging.DEBUG)
+            new_pos = self._explore_pf.follow(self.pos, self._map['impassable'])
             #self.follow_pf(self._resource_pf.field)
 
         if new_pos != self.pos:
@@ -231,6 +247,8 @@ class AgentPotentialField(AgentBasic):
             # Update the time that cell was seen
             self._map['seen_time'][x][y] = self._meta_system._clock
 
+        self._map['seen_time'][self.pos] = self._meta_system._clock
+
         return belief_changed
 
     def filter_neighbors(self, objects):
@@ -260,9 +278,12 @@ class AgentPotentialField(AgentBasic):
                     self._map['seen'][nb_pos] = None
                     self._map['impassable'][nb_pos] = 0
                     self._trash_pf.remove_hot_spot(nb_pos)
+                    '''
                     self._trash_pf.update(self._map['impassable'])
                     self._recharge_pf.update(self._map['impassable'])
                     self._drop_pf.update(self._map['impassable'])
+                    self._explore_pf.update(self._map['impassable'], self.model._clock, self._map['seen_time'])
+                    '''
 
             elif isinstance(neighbor, DropPoint):
                 # Drop resources to a drop point.

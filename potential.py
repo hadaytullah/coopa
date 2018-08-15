@@ -22,7 +22,7 @@ class PotentialField:
 
     @property
     def field(self):
-        """Current potential field as 2D real valued numpy matrix.
+        """Current potential field as 2D real valued numpy array.
         """
         return self._pf
 
@@ -53,7 +53,7 @@ class PotentialField:
         """Follow potential field from a given position to the descending direction.
 
         :param tuple pos: Current position.
-        :param impassable: Optional 2D numpy matrix where impassable cells are marked with values smaller than zero.
+        :param impassable: Optional 2D numpy array where impassable cells are marked with values smaller than zero.
         :param bool moore: Are diagonal movements allowed (True) or not (False).
         """
         neighbor_deltas = clock_wise if moore else clock_wise4
