@@ -1,5 +1,8 @@
+import logging
+
 from mesa import Agent
 from mesa.time import RandomActivation
+
 from trash import Trash
 from drop_point import DropPoint
 import random
@@ -10,6 +13,10 @@ class AgentBasic(Agent):
         super().__init__(unique_id, model)
         self._trash_count = 0
         self._log_path = log_path
+
+    @property
+    def time(self):
+        return self.model.time
        
     @property
     def trash_count(self):
@@ -74,3 +81,6 @@ class AgentBasic(Agent):
                 self._trash_count = 0
 
         print('AgentBasic#%s, after trash_count, %i' % (self.unique_id, self._trash_count))
+
+    def _log(self, msg, lvl=logging.DEBUG):
+        self._logger.log(lvl, msg, extra={'time': self.time})

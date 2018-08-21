@@ -109,7 +109,7 @@ def create_logger(name, log_path=None, level=logging.DEBUG, path_exist_ok=True):
     logger = logging.getLogger(name)
     logger.handlers = []
     logger.setLevel(level)
-    fmt = logging.Formatter('%(asctime)-15s %(levelname)s %(name)s Step %(clock)s: %(message)s')
+    fmt = logging.Formatter('%(asctime)-15s %(levelname)s %(name)s Step %(time)s: %(message)s')
     shdl = logging.StreamHandler()
     shdl.setLevel(level)
     shdl.setFormatter(fmt)

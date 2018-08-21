@@ -79,22 +79,26 @@ class CoopaModel(Model):
             self.grid.position_agent(a)
 
         self.datacollector = DataCollector(
-            model_reporters={"Drop point trashes": compute_dropped_trashes,
+            model_reporters={"Trash collected": compute_dropped_trashes,
                              "Average battery power": compute_average_battery_power,
                              "Max battery power": compute_max_battery_power,
-                             "Min battery power": compute_min_battery_power},
+                             "Min battery power": compute_min_battery_power
+                             },
             # agent_reporters={"Trash": "trash_count"}
             ) # An agent attribute
 
         self.name = "CoopaModel"
         self._logger = utils.create_logger(self.name, log_path=log_path)
 
+    @property
+    def time(self):
+        return self.schedule.time
+
     def step(self):
         t = time.monotonic()
-        self._clock += 1
         self.datacollector.collect(self)
         self.schedule.step()
         self._log("Finished in {:.5f} seconds.".format(time.monotonic() - t), logging.INFO)
 
     def _log(self, msg, lvl=logging.DEBUG):
-        self._logger.log(lvl, msg, extra={'clock': self._clock})
+        self._logger.log(lvl, msg, extra={'time': self.time})

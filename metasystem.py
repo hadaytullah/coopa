@@ -21,20 +21,21 @@ class MetaSystem:
         self._cooperation = {}
         self._knowledge_base = KnowledgeBase()
         self._current_goal = self._knowledge_base.goals['find_trash']
-        self._clock = 0
         
         # time awareness
-        self._time_trash_found = self._clock
+        self._time_trash_found = self.time
         self._agent_trash_count_history = self._agent.trash_count
         # queue to maintain last 10 positions
         self._agent_position_history = deque([(0, 0)], 10)
 
         # domain awareness
-        self._time_domain_strategy_applied = self._clock
+        self._time_domain_strategy_applied = self.time
+
+    @property
+    def time(self):
+        return self._agent.time
     
     def step(self):
-        self._clock += 1
-
         self._time_awareness_step()
         self._goal_awareness_step() 
         self._cooperation_awareness_step() #self._context_awareness_step()
@@ -52,7 +53,7 @@ class MetaSystem:
         if self._agent.trash_count > self._agent_trash_count_history:
             # a resource has been found, take a note of it
             self._agent_trash_count_history = self._agent.trash_count
-            self._time_trash_found = self._clock
+            self._time_trash_found = self.time
         
         # position history 
         # TODO: move to knowledge base?
@@ -63,10 +64,10 @@ class MetaSystem:
         # going far from current location improves the 
         # chances to find interesting things
         # WITH hiatus between applications of the strategy, otherwise, it keeps on chaning the target point
-        if self._clock - self._time_trash_found > 100 and self._clock - self._time_domain_strategy_applied > 140:
-            self._time_domain_strategy_applied = self._clock
+        if self.time - self._time_trash_found > 100 and self.time - self._time_domain_strategy_applied > 140:
+            self._time_domain_strategy_applied = self.time
             print("It has been long time since last resource was discovered.")
-            #long time no (resource) see
+            #long time no (resource) seen
             #find a point a reasonable distance, probably in next room
             pos_x = int(self._agent.pos[0] - (self._agent.model.grid.width/3))
             pos_y = int(self._agent.pos[1] - (self._agent.model.grid.height/3))

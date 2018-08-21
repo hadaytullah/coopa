@@ -247,9 +247,6 @@ class AgentCoopa(AgentBasic):
 
         self._log(str(self))
 
-    def _log(self, msg, lvl=logging.DEBUG):
-        self._logger.log(lvl, msg, extra={'clock': self.model._clock})
-
     def __repr__(self):
         return "{}(bp:{:.2f}, tc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.trash_count,
                                                                   self.pos, self.target_pos, self._meta_system._current_goal)
