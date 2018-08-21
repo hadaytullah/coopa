@@ -211,7 +211,7 @@ class AgentCoopa(AgentBasic):
             else:
                 self._map['seen'][x][y] = type(obj)
             # Update the time that cell was seen
-            self._map['seen_time'][x][y] = self._meta_system._clock
+            self._map['seen_time'][x][y] = self.time
 
     def filter_neighbors(self, objects):
         """Return only the objects that are currently neighboring the agent.

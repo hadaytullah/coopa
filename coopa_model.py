@@ -57,7 +57,6 @@ class CoopaModel(Model):
         self.layout = Layout()
         self._context = Context()
         self.agent_type = AGENT_TYPES[agent_type]
-        self._clock = 0
 
         self.layout.draw(self.grid)
 

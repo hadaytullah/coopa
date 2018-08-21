@@ -168,7 +168,7 @@ class AgentPotentialField(AgentBasic):
             new_pos = self._trash_pf.follow(self.pos, self._map['impassable'])
             #self.follow_pf(self._resource_pf.field)
         else:
-            self._explore_pf.update(self._map['impassable'], self.pos, self.model._clock, self._map['seen_time'])
+            self._explore_pf.update(self._map['impassable'], self.pos, self.time, self._map['seen_time'])
             self._log("Following explore pf", logging.DEBUG)
             new_pos = self._explore_pf.follow(self.pos, self._map['impassable'])
             #self.follow_pf(self._resource_pf.field)
@@ -245,9 +245,9 @@ class AgentPotentialField(AgentBasic):
                     self._trash_pf.add_hot_spot(obj.pos)
                     belief_changed = True
             # Update the time that cell was seen
-            self._map['seen_time'][x][y] = self._meta_system._clock
+            self._map['seen_time'][x][y] = self.time
 
-        self._map['seen_time'][self.pos] = self._meta_system._clock
+        self._map['seen_time'][self.pos] = self.time
 
         return belief_changed
 
