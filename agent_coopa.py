@@ -6,7 +6,7 @@ import logging
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
 from trash import Trash
-from drop_point import DropPoint
+from trashcan import Trashcan
 from message import Message
 from cooperation import Cooperation
 from metasystem import MetaSystem
@@ -30,7 +30,7 @@ class AgentCoopa(AgentBasic):
 
         # Map with different layers
         self._map = {}
-        self._impassables = [Wall, DropPoint, RechargePoint, Trash]
+        self._impassables = [Wall, Trashcan, RechargePoint, Trash]
         # Create map of the environment for the agent, i.e. the agent knows its environment beforehand
         self._map['impassable'] = search.build_map(model.grid, self._impassables)
         self._map['seen'] = np.full((model.grid.width, model.grid.height), None)
@@ -235,8 +235,8 @@ class AgentCoopa(AgentBasic):
                     self._trash_count += 1
                     self.model.grid.remove_agent(neighbor)
 
-            elif type(neighbor) is DropPoint:
-                # Drop resources to a drop point.
+            elif type(neighbor) is Trashcan:
+                # Drop carried trash to a trashcan.
                 neighbor.pick_trash(self._trash_count)
                 self._trash_count = 0
             

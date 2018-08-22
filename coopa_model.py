@@ -3,7 +3,7 @@ import time
 
 from mesa import Model
 from trash import Trash
-from drop_point import DropPoint
+from trashcan import Trashcan
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 from mesa.datacollection import DataCollector
@@ -27,8 +27,8 @@ def compute_gini(model):
 
 
 def compute_dropped_trashes(model):
-    drop_point_trashes = [dp.trash_count for dp in model.drop_points]
-    return sum(drop_point_trashes)
+    dropped_trashes = [trashcan.trash_count for trashcan in model.trashcans]
+    return sum(dropped_trashes)
 
 
 def compute_average_battery_power(model):
@@ -61,12 +61,12 @@ class CoopaModel(Model):
         self.layout.draw(self.grid)
 
         # Add drop point(s)
-        self.drop_points = [DropPoint(1, self)]
-        self.grid.place_agent(self.drop_points[0], (5,5))
+        self.trashcans = [Trashcan(1, self)]
+        self.grid.place_agent(self.trashcans[0], (5, 5))
 
         # Add recharging station(s)
         self.recharge_points = [RechargePoint(1, self)]
-        self.grid.place_agent(self.recharge_points[0], (55,5))
+        self.grid.place_agent(self.recharge_points[0], (55, 5))
 
         # Place resources tactically
         self._context.place_few_trash_in_all_rooms(self)

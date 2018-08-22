@@ -3,11 +3,11 @@ from mesa.time import RandomActivation
 import random
 
 
-class DropPoint(Agent):
+class Trashcan(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self._trash_count = 0
-        self.name = "DropPoint#{:0<3}".format(self.unique_id)
+        self.name = "Trashcan#{:0<3}".format(self.unique_id)
 
     @property
     def trash_count (self):

@@ -5,7 +5,7 @@ import logging
 
 from agent_basic import AgentBasic
 from trash import Trash
-from drop_point import DropPoint
+from trashcan import Trashcan
 from message import Message
 from cooperation import Cooperation
 from pf_metasystem import PotentialFieldMetaSystem
@@ -32,7 +32,7 @@ class AgentPotentialField(AgentBasic):
 
         # Map with different layers
         self._map = {}
-        self._impassables = [Wall, DropPoint, RechargePoint, Trash]
+        self._impassables = [Wall, Trashcan, RechargePoint, Trash]
         # Initialize the whole environment to be thought to be an empty grid. The belief of the environment state is
         # then updated through observations
         self._map['impassable'] = np.zeros((model.grid.width, model.grid.height))
@@ -54,9 +54,9 @@ class AgentPotentialField(AgentBasic):
         self._recharge_point = self.model.recharge_points[0].pos
         self._map['impassable'][self._recharge_point] = -1
         self._map['seen'][self._recharge_point] = RechargePoint
-        self._drop_point = self.model.drop_points[0].pos
-        self._map['impassable'][self._drop_point] = -1
-        self._map['seen'][self._drop_point] = DropPoint
+        self._trashcan = self.model.trashcans[0].pos
+        self._map['impassable'][self._trashcan] = -1
+        self._map['seen'][self._trashcan] = Trashcan
 
         # List of current neighboring objects, populated on each step by 'observe' and used by 'process'.
         self._current_neighbors = None
@@ -70,8 +70,8 @@ class AgentPotentialField(AgentBasic):
         # Different potential fields which agent uses to move in different situations.
         self._recharge_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [self._recharge_point])
         self._recharge_pf.update(self._map['impassable'])
-        self._drop_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [self._drop_point])
-        self._drop_pf.update(self._map['impassable'])
+        self._trashcan_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [self._trashcan])
+        self._trashcan_pf.update(self._map['impassable'])
         self._trash_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
         self._explore_pf = ExplorePotentialField(self._grid.width, self._grid.height, [])
 
@@ -158,9 +158,9 @@ class AgentPotentialField(AgentBasic):
             self._log("Following recharge pf", logging.DEBUG)
             new_pos = self._recharge_pf.follow(self.pos, self._map['impassable'])
         elif self.trash_count == self.trash_capacity:
-            self._drop_pf.update(self._map['impassable'])
-            self._log("Following drop pf", logging.DEBUG)
-            new_pos = self._drop_pf.follow(self.pos, self._map['impassable'])
+            self._trashcan_pf.update(self._map['impassable'])
+            self._log("Following trashcan pf", logging.DEBUG)
+            new_pos = self._trashcan_pf.follow(self.pos, self._map['impassable'])
             #self.follow_pf(self._drop_pf.field)
         elif len(self._trash_pf.hot_spots) > 0:
             self._trash_pf.update(self._map['impassable'])
@@ -266,7 +266,7 @@ class AgentPotentialField(AgentBasic):
         Process is executed after moving on each time step.
         """
 
-        # TODO: pick up all trash before processing drop point.
+        # TODO: pick up all trash before processing trash dropping to trashcan.
         for neighbor in self._current_neighbors:
             if isinstance(neighbor, Trash):
                 # Collect resources in the neighborhood
@@ -285,7 +285,7 @@ class AgentPotentialField(AgentBasic):
                     self._explore_pf.update(self._map['impassable'], self.model._clock, self._map['seen_time'])
                     '''
 
-            elif isinstance(neighbor, DropPoint):
+            elif isinstance(neighbor, Trashcan):
                 # Drop resources to a drop point.
                 neighbor.pick_trash(self._trash_count)
                 self._trash_count = 0

@@ -4,7 +4,7 @@ from mesa import Agent
 from mesa.time import RandomActivation
 
 from trash import Trash
-from drop_point import DropPoint
+from trashcan import Trashcan
 import random
 
 
@@ -62,7 +62,7 @@ class AgentBasic(Agent):
             if type(neighbor) is Trash:
                 self._trash_count += 1
                 self.model.grid.remove_agent(neighbor)
-            elif type(neighbor) is DropPoint:
+            elif type(neighbor) is Trashcan:
                 neighbor.pick_trash(self._trash_count)
                 self._trash_count = 0
 
@@ -76,7 +76,7 @@ class AgentBasic(Agent):
             if type(other) is Trash:
                 self._trash_count += 1
                 self.model.grid.remove_agent(other)
-            elif type(other) is DropPoint:
+            elif type(other) is Trashcan:
                 other.pick_trash(self._trash_count)
                 self._trash_count = 0
 

@@ -12,14 +12,14 @@ class KnowledgeBase:
             'find_trash':{
                 'name' : 'find_trash',
                 #'pos' : None, # potential resource location
-                'next_goal' : 'find_drop_point'
+                'next_goal' : 'find_trashcan'
             },
             # 'pick_resource':{
             #     'name' : 'pick_resource',
             #     'next_goal' : 'find_drop_point'
             # },
-            'find_drop_point':{
-                'name' : 'find_drop_point',
+            'find_trashcan':{
+                'name' : 'find_trashcan',
                 #'pos' : None # potential drop point location
                 'next_goal' : 'find_trash'
             },
@@ -40,7 +40,7 @@ class KnowledgeBase:
                     'relation': 'has',
                     'cadinality': 'one_to_many'
                 },
-                'drop_point': {
+                'trashcan': {
                     'relation': 'has',
                     'cadinality': 'one_to_many'
                 },
@@ -58,7 +58,7 @@ class KnowledgeBase:
                 }
             },
             'room':{
-                'drop_point':{
+                'trashcan': {
                     'relation' : 'has',
                     'cadinality' : 'one_to_one'
                 },
@@ -76,7 +76,7 @@ class KnowledgeBase:
                 }
             },
             'corridor':{
-                'drop_point':{
+                'trashcan':{
                     'relation' : 'has',
                     'cadinality' : 'one_to_none'
                 },
@@ -89,7 +89,7 @@ class KnowledgeBase:
         
         self._trash_positions = []
 
-        self._drop_point_positions = [(5, 5)]
+        self._trashcan_positions = [(5, 5)]
 
         self._recharge_point_positions = [(55, 5)] #for testing purpose
         
@@ -106,8 +106,8 @@ class KnowledgeBase:
         return self._trash_positions
 
     @property
-    def drop_point_positions(self):
-        return self._drop_point_positions
+    def trashcan_positions(self):
+        return self._trashcan_positions
     
     @property
     def recharge_point_positions(self):

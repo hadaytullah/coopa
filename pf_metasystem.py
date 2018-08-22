@@ -5,7 +5,7 @@ from collections import deque
 from agent_basic import AgentBasic
 from mesa.time import RandomActivation
 from trash import Trash
-from drop_point import DropPoint
+from trashcan import Trashcan
 from message import Message
 from cooperation import Cooperation
 from knowledge_base import KnowledgeBase
@@ -123,28 +123,28 @@ class PotentialFieldMetaSystem:
                 #pict the last logged position as a target position
                 self._agent.target_pos = self._knowledge_base.trash_positions[-1]
     
-        elif self._current_goal['name'] is 'find_drop_point':
+        elif self._current_goal['name'] is 'find_trashcan':
             neighbors = self._agent.model.grid.get_neighbors(self._agent.pos, moore=True, include_center=False, radius=1)
-            drop_point = None
+            trashcan = None
             for neighbor in neighbors:
-                if type(neighbor) is DropPoint:
-                    drop_point = neighbor
+                if type(neighbor) is Trashcan:
+                    trashcan = neighbor
                     break
-            if drop_point is not None:#drop point found, move on to the next goal
+            if trashcan is not None:#drop point found, move on to the next goal
                 self._current_goal = self._knowledge_base.goals[self._knowledge_base.goals[self._current_goal['name']]['next_goal']]
                 self._agent.target_pos = None
-            elif len(self._knowledge_base.drop_point_positions) > 0: 
+            elif len(self._knowledge_base.trashcan_positions) > 0:
                 #keep looking, a little help from knowledge base
                 #pick the last logged position as a target position
-                self._agent.target_pos = self._knowledge_base.drop_point_positions[-1]
+                self._agent.target_pos = self._knowledge_base.trashcan_positions[-1]
     
     def _cooperation_awareness_step(self):
         neighbors = self._agent.model.grid.get_neighbors(self._agent.pos, moore=True, include_center=False, radius=1)
         for neighbor in neighbors:
             if type(neighbor) is Trash:
                 self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'trash', self._agent.pos[0], self._agent.pos[1]))
-            elif type(neighbor) is DropPoint:
-                self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'drop_point', self._agent.pos[0], self._agent.pos[1]))
+            elif type(neighbor) is Trashcan:
+                self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'trashcan', self._agent.pos[0], self._agent.pos[1]))
             elif type(neighbor) is RechargePoint:
                 self._agent.model.message_dispatcher.broadcast(Message(self._agent, 'recharge_point', self._agent.pos[0], self._agent.pos[1]))
             elif type(neighbor) is RechargePoint:
@@ -168,8 +168,8 @@ class PotentialFieldMetaSystem:
                     # we must tag data with agent ids. So we can remove the data of an agent that becomes non-trustworthy. 
                     self._knowledge_base.trash_positions.append([message.x, message.y])
                     #self._goals['find_resource']['pos'] = [message.x, message.y]
-                elif message.position_of is 'drop_point':
-                    self._knowledge_base.drop_point_positions.append([message.x, message.y])
+                elif message.position_of is 'trashcan':
+                    self._knowledge_base.trashcan_positions.append([message.x, message.y])
                     #self._goals['find_drop_point']['pos'] = [message.x, message.y]
                 elif message.position_of is 'recharge_point':
                     self._knowledge_base.recharge_point_positions.append([message.x, message.y])
