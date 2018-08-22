@@ -27,8 +27,13 @@ chart2 = ChartModule([{"Label": "Average battery power",
                       ],
                     data_collector_name='datacollector')
 
-potentialMapChart = HeatMapChartModule([{"Label": "Potential field",
-                      "Color": "Black"}],
+
+potentialMapChart = HeatMapChartModule([{
+                    "Label": "Potential field",
+                    "Color": "Black",
+                    "Width":60,
+                    "Height":60
+}],
                     data_collector_name='datacollector')
 
 

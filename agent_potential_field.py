@@ -75,6 +75,9 @@ class AgentPotentialField(AgentBasic):
         self._trash_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
         self._explore_pf = ExplorePotentialField(self._grid.width, self._grid.height, [])
 
+    def get_potential_field(self):
+        return self._recharge_pf
+
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:

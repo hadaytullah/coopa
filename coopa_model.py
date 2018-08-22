@@ -41,8 +41,8 @@ def compute_max_battery_power(model):
     return max(bps)
 
 def compute_potential_field (model):
-    potential_field = [ ]
-    return potential_field
+    #potential_field = [ ]
+    return model.schedule.agents[0].get_potential_field().field.tolist()
 
 
 def compute_min_battery_power(model):
