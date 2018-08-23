@@ -1,14 +1,13 @@
 import logging
-
-from mesa import Agent
-from mesa.time import RandomActivation
-
-from trash import Trash
-from trashcan import Trashcan
 import random
 
+from mesa import Agent
 
-class AgentBasic(Agent):
+from agents.trash import Trash
+from agents.trashcan import Trashcan
+
+
+class BasicAgent(Agent):
     def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model)
         self._trash_count = 0

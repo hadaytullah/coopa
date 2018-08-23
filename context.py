@@ -1,4 +1,4 @@
-from trash import Trash
+from agents.trash import Trash
 
 
 class Context:

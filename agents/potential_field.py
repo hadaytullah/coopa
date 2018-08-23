@@ -1,24 +1,20 @@
-import random
-import pdb
-import numpy as np
 import logging
 
-from agent_basic import AgentBasic
-from trash import Trash
-from trashcan import Trashcan
-from message import Message
-from cooperation import Cooperation
-from pf_metasystem import PotentialFieldMetaSystem
-from knowledge_base import KnowledgeBase
-from recharge_point import RechargePoint
-from hot_spot_potential import HotSpotPotentialField
-from explore_potential import ExplorePotentialField
-from wall import Wall
+import numpy as np
+
 import search
+from agents.basic import BasicAgent
+from agents.recharge_point import RechargePoint
+from agents.trash import Trash
+from agents.trashcan import Trashcan
+from agents.wall import Wall
+from explore_potential import ExplorePotentialField
+from hot_spot_potential import HotSpotPotentialField
+from pf_metasystem import PotentialFieldMetaSystem
 from utils import get_line, create_logger
 
 
-class AgentPotentialField(AgentBasic):
+class PotentialFieldAgent(BasicAgent):
     """Agent which uses potential fields for awarenesses."""
 
     def __init__(self, unique_id, model, log_path=None):
@@ -79,7 +75,7 @@ class AgentPotentialField(AgentBasic):
         if self._battery_power > 0:
             if self._is_recharging is False:
                 self._meta_system.step()
-                super(AgentPotentialField, self).step()
+                super(PotentialFieldAgent, self).step()
                 self.drain_battery()
             else:
                 self._log("Recharging...", logging.INFO)

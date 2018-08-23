@@ -1,24 +1,21 @@
-import random
-import pdb
-import numpy as np
 import logging
+import random
 
-from agent_basic import AgentBasic
-from mesa.time import RandomActivation
-from trash import Trash
-from trashcan import Trashcan
-from message import Message
-from cooperation import Cooperation
-from metasystem import MetaSystem
-from knowledge_base import KnowledgeBase
-from recharge_point import RechargePoint
-from wall import Wall
+import numpy as np
+
 import search
+from agents.basic import BasicAgent
+from agents.recharge_point import RechargePoint
+from agents.trash import Trash
+from agents.trashcan import Trashcan
+from agents.wall import Wall
+from metasystem import MetaSystem
 from utils import get_line, create_logger
 
 
-class AgentCoopa(AgentBasic):
-    """AgentCoopa cooperates with other agents"""
+class CoopaAgent(BasicAgent):
+    """AgentCoopa cooperates with other agents.
+    """
 
     def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model, log_path=log_path)
@@ -55,7 +52,7 @@ class AgentCoopa(AgentBasic):
         if self._battery_power > 0:
             if self._is_recharging is False:
                 self._meta_system.step()
-                super(AgentCoopa, self).step()
+                super(CoopaAgent, self).step()
                 self.drain_battery()
             else:
                 self._log("{} is recharging.".format(self.name), logging.INFO)
@@ -120,7 +117,7 @@ class AgentCoopa(AgentBasic):
             else:
                 self._move_towards_point(self._target_pos)
         else:
-            super(AgentCoopa, self).move()
+            super(CoopaAgent, self).move()
 
     def _move_towards_point(self, point):
         possible_steps = []

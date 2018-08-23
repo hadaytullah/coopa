@@ -2,17 +2,17 @@ import logging
 import time
 
 from mesa import Model
-from trash import Trash
-from trashcan import Trashcan
-from mesa.time import RandomActivation
-from mesa.space import SingleGrid
 from mesa.datacollection import DataCollector
-from message_dispatcher import MessageDispatcher
-from layout import Layout
-from ui_styling import AGENT_TYPES
-from recharge_point import RechargePoint
-from context import Context
+from mesa.space import SingleGrid
+from mesa.time import RandomActivation
+
 import utils
+from agents.recharge_point import RechargePoint
+from agents.trashcan import Trashcan
+from context import Context
+from layout import Layout
+from message_dispatcher import MessageDispatcher
+from ui_styling import AGENT_TYPES
 
 
 def compute_gini(model):

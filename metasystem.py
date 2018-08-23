@@ -1,15 +1,11 @@
-import math
-import random
 from collections import deque
 
-from agent_basic import AgentBasic
-from mesa.time import RandomActivation
-from trash import Trash
-from trashcan import Trashcan
-from message import Message
+from agents.trash import Trash
+from agents.recharge_point import RechargePoint
+from agents.trashcan import Trashcan
 from cooperation import Cooperation
 from knowledge_base import KnowledgeBase
-from recharge_point import RechargePoint
+from message import Message
 
 
 class MetaSystem:

@@ -1,5 +1,7 @@
-from wall import Wall
 import random
+
+from agents.wall import Wall
+
 
 class Layout:
     def draw_room_from_point (self, grid, x, y, size):

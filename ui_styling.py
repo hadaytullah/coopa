@@ -1,24 +1,23 @@
-from agent_coopa import AgentCoopa
-from agent_basic import AgentBasic
-from agent_potential_field import AgentPotentialField
-from trash import Trash
-from trashcan import Trashcan
-from wall import Wall
-from recharge_point import RechargePoint
-
+from agents.basic import BasicAgent
+from agents.coopa import CoopaAgent
+from agents.potential_field import PotentialFieldAgent
+from agents.recharge_point import RechargePoint
+from agents.trash import Trash
+from agents.trashcan import Trashcan
+from agents.wall import Wall
 
 PORTRAYALS = {
-    AgentCoopa: {
+    CoopaAgent: {
         "Color": "blue",
         "Layer": 0,
         "r": 0.8
     },
-    AgentBasic: {
+    BasicAgent: {
         "Color": "blue",
         "Layer": 0,
         "r": 0.8
     },
-    AgentPotentialField: {
+    PotentialFieldAgent: {
         "Color": "purple",
         "Layer": 0,
         "r": 0.8
@@ -47,9 +46,9 @@ PORTRAYALS = {
 }
 
 AGENT_TYPES = {
-    'pf': AgentPotentialField,
-    'coopa': AgentCoopa,
-    'basic': AgentBasic
+    'pf': PotentialFieldAgent,
+    'coopa': CoopaAgent,
+    'basic': BasicAgent
 }
 
 
@@ -66,7 +65,7 @@ def agent_portrayal(agent):
     for key, value in PORTRAYALS[type(agent)].items():
         portrayal[key] = value
 
-    if type(agent) in (AgentCoopa, AgentPotentialField):
+    if type(agent) in (CoopaAgent, PotentialFieldAgent):
         if agent.battery_power == 0:
             portrayal["Color"] = "grey"
             portrayal['r'] = 0.7

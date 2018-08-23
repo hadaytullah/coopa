@@ -1,6 +1,4 @@
 from mesa import Agent
-from mesa.time import RandomActivation
-import random
 
 
 class Trashcan(Agent):
