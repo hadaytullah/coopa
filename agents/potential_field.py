@@ -3,15 +3,15 @@ import logging
 import numpy as np
 
 import search
-from agents.basic import BasicAgent
-from agents.recharge_point import RechargePoint
-from agents.trash import Trash
-from agents.trashcan import Trashcan
-from agents.wall import Wall
 from explore_potential import ExplorePotentialField
 from hot_spot_potential import HotSpotPotentialField
 from pf_metasystem import PotentialFieldMetaSystem
 from utils import get_line, create_logger
+from .basic import BasicAgent
+from .recharge_point import RechargePoint
+from .trash import Trash
+from .trashcan import Trashcan
+from .wall import Wall
 
 
 class PotentialFieldAgent(BasicAgent):
@@ -57,7 +57,7 @@ class PotentialFieldAgent(BasicAgent):
         # List of current neighboring objects, populated on each step by 'observe' and used by 'process'.
         self._current_neighbors = None
 
-        self._trash_capacity = 1  # Trash carrying capacity
+        self._trash_capacity = 3  # Trash carrying capacity
         # self._capacity = random.choice([1, 2, 3])
         self._speed = 1
         self._scan_radius = 1

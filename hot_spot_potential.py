@@ -2,8 +2,8 @@
 """
 import numpy as np
 
-from search.bfs import bfs
 from potential import PotentialField
+from search.bfs import bfs
 
 
 class HotSpotPotentialField(PotentialField):

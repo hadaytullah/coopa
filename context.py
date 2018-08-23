@@ -14,17 +14,15 @@ class Context:
 
     def place_trashes_randomly(self, model, num=20):
         for i in range(num):
-            trash = Trash(i, model)
+            trash = Trash(model.next_id(), model)
             model.schedule.add(trash)
             model.grid.position_agent(trash)
 
     def _place_trashes(self, trash_positions, model):
-        trash_id = 0
         for pos in trash_positions:
-            trash = Trash(trash_id, model)
+            trash = Trash(model.next_id(), model)
             model.schedule.add(trash)
             model.grid.place_agent(trash, pos)
-            trash_id += 1
 
 
 

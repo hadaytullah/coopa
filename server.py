@@ -1,10 +1,12 @@
 # server.py
-from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
-from coopa_model import CoopaModel
 from mesa.visualization.UserParam import UserSettableParameter
+from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.modules import ChartModule
-from ui_styling import agent_portrayal, PORTRAYALS, AGENT_TYPES
+
+from coopa_model import CoopaModel
+from random_trash_model import RandomTrashModel
+from ui_styling import agent_portrayal, AGENT_TYPES
 
 n_slider = UserSettableParameter('slider', "Number of Agents", 1, 1, 200, 1)
 # Reverse to sorted keys to get coopa as the default agent as we are currently building it.
@@ -31,8 +33,14 @@ chart2 = ChartModule([{"Label": "Average battery power",
 #                       "Coopa Model",
 #                       {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type, "log_path": None})
 
-server = ModularServer(CoopaModel,
+#server = ModularServer(CoopaModel,
+#                       [grid],
+#                       "Coopa Model",
+#                       {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type, "log_path": None})
+
+
+server = ModularServer(RandomTrashModel,
                        [grid],
-                       "Coopa Model",
+                       "Random Trash Model",
                        {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type, "log_path": None})
 

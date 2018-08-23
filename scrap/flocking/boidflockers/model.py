@@ -7,10 +7,9 @@ Uses numpy arrays to represent vectors.
 
 
 import random
-import numpy as np
 
+import numpy as np
 from mesa import Model
-from mesa.space import ContinuousSpace
 from mesa.time import SimultaneousActivation
 
 from .boid import Boid

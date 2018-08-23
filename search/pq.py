@@ -1,8 +1,8 @@
 """Altered priority queue implementation from: https://docs.python.org/3/library/heapq.html
 
 """
-from heapq import *
 import itertools
+from heapq import *
 
 
 class PQ:

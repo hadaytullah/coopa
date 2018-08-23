@@ -1,6 +1,5 @@
 from mesa import Agent
-from mesa.time import RandomActivation
-import random
+
 
 class RechargePoint(Agent):
     def __init__(self, unique_id, model):

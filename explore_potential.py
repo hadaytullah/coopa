@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from search.bfs import bfs
 from hot_spot_potential import HotSpotPotentialField
+from search.bfs import bfs
 
 
 class ExplorePotentialField(HotSpotPotentialField):

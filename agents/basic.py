@@ -3,8 +3,8 @@ import random
 
 from mesa import Agent
 
-from agents.trash import Trash
-from agents.trashcan import Trashcan
+from .trash import Trash
+from .trashcan import Trashcan
 
 
 class BasicAgent(Agent):

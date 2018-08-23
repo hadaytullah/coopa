@@ -1,8 +1,8 @@
 """A* search.
 """
-from search.pq import PQ
-
 import numpy as np
+
+from search.pq import PQ
 
 # "Maximum distance" used for f.
 MAX_DIST = 100000

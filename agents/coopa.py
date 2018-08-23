@@ -4,18 +4,17 @@ import random
 import numpy as np
 
 import search
-from agents.basic import BasicAgent
-from agents.recharge_point import RechargePoint
-from agents.trash import Trash
-from agents.trashcan import Trashcan
-from agents.wall import Wall
 from metasystem import MetaSystem
 from utils import get_line, create_logger
+from .basic import BasicAgent
+from .recharge_point import RechargePoint
+from .trash import Trash
+from .trashcan import Trashcan
+from .wall import Wall
 
 
 class CoopaAgent(BasicAgent):
-    """AgentCoopa cooperates with other agents.
-    """
+    """AgentCoopa cooperates with other agents."""
 
     def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model, log_path=log_path)

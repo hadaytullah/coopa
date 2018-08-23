@@ -1,5 +1,3 @@
-import random
-
 # This might expand into a huge thing
 class Cooperation:
     def __init__(self, with_agent):
