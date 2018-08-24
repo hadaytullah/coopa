@@ -12,25 +12,19 @@ class RandomTrashContext(Context):
         Maximum number of trashes in the environment. No new trashes are spawned if the maximum count is reached.
     """
 
-    def __init__(self, model, spawn_probability=0.01, max_trash_count=20):
-        self._model = model
+    def __init__(self, spawn_probability=0.01, max_trash_count=20):
         self._spawn_probability = spawn_probability
         self._max_trash_count = max_trash_count
 
-    def trash_count(self):
-        count = 0
-        for c in self._model.grid:
-            if isinstance(c, Trash):
-                count += 1
-        return count
+    def current_trash_count(self, model):
+        return len(model.grid.get_agents(Trash))
 
-    def spawn_trash(self):
+    def spawn_trash(self, model):
         if random.random() < self._spawn_probability:
-            print("Trash count {}".format(self.trash_count()))
-            if self.trash_count() < self._max_trash_count:
-                trash = Trash(self._model.next_id(), self._model)
-                self._model.schedule.add(trash)
-                self._model.grid.position_agent(trash)
+            if self.current_trash_count(model) < self._max_trash_count:
+                trash = Trash(model.next_id(), model)
+                model.schedule.add(trash)
+                model.grid.position_agent(trash)
 
 
 

@@ -3,9 +3,12 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.modules import ChartModule
+from mesa.visualization.modules import TextElement
+
 
 from coopa_model import CoopaModel
 from random_trash_model import RandomTrashModel
+from TextVisualization import TextModule
 from ui_styling import agent_portrayal, AGENT_TYPES
 
 n_slider = UserSettableParameter('slider', "Number of Agents", 1, 1, 200, 1)
@@ -28,6 +31,9 @@ chart2 = ChartModule([{"Label": "Average battery power",
                       ],
                     data_collector_name='datacollector')
 
+time_text = TextModule('time', 'Time')
+trash_collected_text = TextModule('trash_collected', 'Trash collected')
+
 #server = ModularServer(CoopaModel,
 #                       [grid, chart, chart2],
 #                       "Coopa Model",
@@ -40,7 +46,7 @@ chart2 = ChartModule([{"Label": "Average battery power",
 
 
 server = ModularServer(RandomTrashModel,
-                       [grid],
+                       [grid, time_text, trash_collected_text],
                        "Random Trash Model",
                        {"N": n_slider, "width": 60, "height": 60, "agent_type": agent_type, "log_path": None})
 

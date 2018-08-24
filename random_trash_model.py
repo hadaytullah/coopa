@@ -3,13 +3,12 @@ import time
 
 from mesa import Model
 from mesa.datacollection import DataCollector
-from mesa.space import SingleGrid
 from mesa.time import RandomActivation
 
 import utils
 from agents.recharge_point import RechargePoint
 from agents.trashcan import Trashcan
-from random_trash_context import RandomTrashContext
+from context_grid import RandomTrashContextGrid
 from layout import Layout
 from message_dispatcher import MessageDispatcher
 from reporters import *
@@ -21,11 +20,10 @@ class RandomTrashModel(Model):
     def __init__(self, N, width, height, agent_type, log_path=None):
         self.running = True
         self.num_agents = N
-        self.grid = SingleGrid(width, height, torus=False)
+        self.grid = RandomTrashContextGrid(width, height, torus=False)
         self.schedule = RandomActivation(self)
         self.message_dispatcher = MessageDispatcher()
         self.layout = Layout()
-        self._context = RandomTrashContext(self)
         self.agent_type = AGENT_TYPES[agent_type]
         self.current_id = 0
 
@@ -45,7 +43,7 @@ class RandomTrashModel(Model):
             self.grid.position_agent(a)
 
         # Place initial resources
-        self.context.place_few_trash_in_all_rooms(self)
+        self.grid.place_few_trash_in_all_rooms(self)
 
         self.datacollector = DataCollector(
             model_reporters={"Trash collected": compute_dropped_trashes,
@@ -64,12 +62,12 @@ class RandomTrashModel(Model):
         return self.schedule.time
 
     @property
-    def context(self):
-        return self._context
+    def trash_collected(self):
+        return compute_dropped_trashes(self)
 
     def step(self):
         t = time.monotonic()
-        self.context.spawn_trash()
+        self.grid.spawn_trash(self)
         self.schedule.step()
         self.datacollector.collect(self)
         self._log("Finished in {:.5f} seconds.".format(time.monotonic() - t), logging.INFO)
