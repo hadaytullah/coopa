@@ -43,7 +43,7 @@ class RandomTrashModel(Model):
             self.grid.position_agent(a)
 
         # Place initial resources
-        self.grid.place_few_trash_in_all_rooms(self)
+        self.grid.place_trashes_randomly(self, num=12)
 
         self.datacollector = DataCollector(
             model_reporters={"Trash collected": compute_dropped_trashes,

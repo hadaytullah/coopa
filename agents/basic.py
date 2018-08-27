@@ -5,6 +5,7 @@ from mesa import Agent
 
 from .trash import Trash
 from .trashcan import Trashcan
+from battery import Battery
 
 
 class BasicAgent(Agent):
@@ -12,6 +13,7 @@ class BasicAgent(Agent):
         super().__init__(unique_id, model)
         self._trash_count = 0
         self._log_path = log_path
+        self._battery = Battery(320)
 
     @property
     def time(self):
@@ -20,10 +22,10 @@ class BasicAgent(Agent):
     @property
     def trash_count(self):
         return self._trash_count
-    
+
     @property
-    def battery_power(self):
-        return self._battery_power
+    def battery(self):
+        return self._battery
 
     def pick_trash(self, num):
         self._trash_count += num

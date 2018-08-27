@@ -66,7 +66,7 @@ def agent_portrayal(agent):
         portrayal[key] = value
 
     if type(agent) in (CoopaAgent, PotentialFieldAgent):
-        if agent.battery_power == 0:
+        if agent.battery.charge == 0:
             portrayal["Color"] = "grey"
             portrayal['r'] = 0.7
 

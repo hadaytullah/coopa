@@ -26,15 +26,15 @@ def compute_dropped_trashes(model):
 
 
 def compute_average_battery_power(model):
-    bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
+    bps = [agent.battery.charge for agent in model.schedule.agents if hasattr(agent, 'battery')]
     return sum(bps) / len(bps)
 
 
 def compute_max_battery_power(model):
-    bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
+    bps = [agent.battery.charge for agent in model.schedule.agents if hasattr(agent, 'battery')]
     return max(bps)
 
 
 def compute_min_battery_power(model):
-    bps = [agent.battery_power for agent in model.schedule.agents if hasattr(agent, 'battery_power')]
+    bps = [agent.battery.charge for agent in model.schedule.agents if hasattr(agent, 'battery')]
     return min(bps)

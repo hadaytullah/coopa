@@ -3,6 +3,7 @@ import logging
 import numpy as np
 
 import search
+from battery import Battery
 from explore_potential import ExplorePotentialField
 from hot_spot_potential import HotSpotPotentialField
 from pf_metasystem import PotentialFieldMetaSystem
@@ -16,6 +17,8 @@ from .wall import Wall
 
 class PotentialFieldAgent(BasicAgent):
     """Agent which uses potential fields for awarenesses."""
+
+    settable_parameters = ['trash_capacity', 'speed', 'scan_radius', 'battery_threshold']
 
     def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model)
@@ -41,12 +44,10 @@ class PotentialFieldAgent(BasicAgent):
         self._target_pos_path = []
 
         # each step will consume units depending on speed, scan radius, etc.
-        self._battery_power = 320
-        self._max_battery_power = 320
-        self._battery_threshold = self._max_battery_power / 3 + 20
+        self._battery_threshold = self._battery.max_charge / 3
         self._is_recharging = False
 
-        # Known battery recharge and resource drop points.
+        # Known battery recharge and trashcan positions.
         self._recharge_point = self.model.recharge_points[0].pos
         self._map['impassable'][self._recharge_point] = -1
         self._map['seen'][self._recharge_point] = RechargePoint
@@ -72,11 +73,11 @@ class PotentialFieldAgent(BasicAgent):
         self._explore_pf = ExplorePotentialField(self._grid.width, self._grid.height, [])
 
     def step(self):
-        if self._battery_power > 0:
+        if self.battery.charge > 0:
             if self._is_recharging is False:
                 self._meta_system.step()
                 super(PotentialFieldAgent, self).step()
-                self.drain_battery()
+                self.battery.consume_charge(self.get_configuration())
             else:
                 self._log("Recharging...", logging.INFO)
                 self.recharge_battery()
@@ -87,27 +88,46 @@ class PotentialFieldAgent(BasicAgent):
         self._meta_system.cooperation_awareness(message) #have to improve this, temporary solution
     
     def recharge_battery(self):
-        self._battery_power += 10
-        if self._battery_power >= self._max_battery_power:
-            self._battery_power = self._max_battery_power
+        self.battery.recharge()
+        if self.battery.charge == self.battery.max_charge:
             self._is_recharging = False
             self._target_pos = None
 
     @property
     def trash_capacity(self):
         return self._trash_capacity
-    
-    @property
-    def battery_power(self):
-        return self._battery_power
+
+    @trash_capacity.setter
+    def trash_capacity(self, new_capacity):
+        assert not new_capacity < 0
+        self._trash_capacity = new_capacity
 
     @property
     def speed(self):
         return self._speed
 
+    @speed.setter
+    def speed(self, new_speed):
+        assert not new_speed < 0
+        self._speed = new_speed
+
     @property
     def scan_radius(self):
         return self._scan_radius
+
+    @scan_radius.setter
+    def scan_radius(self, new_radius):
+        assert new_radius > 0
+        self._scan_radius = new_radius
+
+    @property
+    def battery_threshold(self):
+        return self._battery_threshold
+
+    @battery_threshold.setter
+    def battery_threshold(self, new_threshold):
+        assert new_threshold > 0
+        self._battery_threshold = new_threshold
 
     @property
     def target_pos(self):
@@ -121,14 +141,21 @@ class PotentialFieldAgent(BasicAgent):
             self._target_pos = tuple(self._target_pos)
             self._target_pos_path = search.astar(self._map['impassable'], self.pos, self._target_pos)[1:-1]
 
-    def drain_battery(self):
-        """Drain battery based on the current agent configuration (speed, scan radius, etc.).
+    def get_configuration(self):
+        """Get agent's current internal configuration.
         """
-        scan_drain = (self.scan_radius - 1) ** 1.5  # Magic number
-        scan_drain = 0
-        speed_drain = self._speed  # Currently agents have fixed speed
-        speed_drain = 0.1
-        self._battery_power -= scan_drain + speed_drain
+        return {'scan_radius': self.scan_radius,
+                'speed': self.speed,
+                'trash_capacity': self.trash_capacity,
+                'trash_count': self.trash_count,
+                'battery_threshold': self.battery_threshold}
+
+    def update_configuration(self, config):
+        """Update agent's current internal configuration.
+        """
+        for key, value in config:
+            if key in PotentialFieldAgent.settable_parameters:
+                setattr(self, key, value)
 
     def observe(self):
         objects = self._get_neighborhood_objects()
@@ -149,7 +176,7 @@ class PotentialFieldAgent(BasicAgent):
         #print(self._map['impassable'])
 
     def move(self):
-        if self._battery_power <= self._battery_threshold:
+        if self.battery.charge <= self._battery_threshold:
             self._recharge_pf.update(self._map['impassable'])
             self._log("Following recharge pf", logging.DEBUG)
             new_pos = self._recharge_pf.follow(self.pos, self._map['impassable'])
@@ -287,14 +314,14 @@ class PotentialFieldAgent(BasicAgent):
                 self._trash_count = 0
             
             elif isinstance(neighbor, RechargePoint):
-                # Recharge
-                if self._battery_power < 120:
+                # Recharges
+                if self.battery.charge < self._battery_threshold:
                     self._is_recharging = True
 
         self._log(str(self))
 
     def __repr__(self):
-        return "{}(bp:{:.2f}, tc:{}, cp:{})".format(self.name, self.battery_power, self.trash_count, self.pos)
+        return "{}(bp:{:.2f}, tc:{}, cp:{})".format(self.name, self.battery.charge, self.trash_count, self.pos)
 
     def __str__(self):
         return self.__repr__()

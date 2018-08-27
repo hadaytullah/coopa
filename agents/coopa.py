@@ -16,6 +16,8 @@ from .wall import Wall
 class CoopaAgent(BasicAgent):
     """AgentCoopa cooperates with other agents."""
 
+    settable_parameters = ['trash_capacity', 'speed', 'scan_radius', 'battery_threshold']
+
     def __init__(self, unique_id, model, log_path=None):
         super().__init__(unique_id, model, log_path=log_path)
 
@@ -37,8 +39,7 @@ class CoopaAgent(BasicAgent):
         self._target_pos_path = []
 
         # each step will consume units depending on speed, scan radius, etc.
-        self._battery_power = 320
-        self._max_battery_power = 320
+        self._battery_threshold = self._battery.max_charge / 3
         self._is_recharging = False
 
         self._speed = 1
@@ -48,11 +49,11 @@ class CoopaAgent(BasicAgent):
         self._logger = create_logger(self.name, log_path=log_path)
 
     def step(self):
-        if self._battery_power > 0:
+        if self.battery.charge > 0:
             if self._is_recharging is False:
                 self._meta_system.step()
                 super(CoopaAgent, self).step()
-                self.drain_battery()
+                self.battery.consume_charge(self.get_configuration())
             else:
                 self._log("{} is recharging.".format(self.name), logging.INFO)
                 self.recharge_battery()
@@ -63,9 +64,8 @@ class CoopaAgent(BasicAgent):
         self._meta_system.cooperation_awareness(message) #have to improve this, temporary solution
     
     def recharge_battery(self):
-        self._battery_power += 10
-        if self._battery_power >= self._max_battery_power:
-            self._battery_power = self._max_battery_power
+        self.battery.recharge()
+        if self.battery.charge == self.battery.max_charge:
             self._is_recharging = False
             self._target_pos = None
 
@@ -81,28 +81,57 @@ class CoopaAgent(BasicAgent):
             self._target_pos = tuple(self._target_pos)
             self._target_pos_path = search.astar(self._map['impassable'], self.pos, self._target_pos)[1:-1]
 
+    def get_configuration(self):
+        """Get agent's current internal configuration.
+        """
+        return {'scan_radius': self.scan_radius,
+                'speed': self.speed,
+                'trash_capacity': self.trash_capacity,
+                'trash_count': self.trash_count,
+                'battery_threshold': self.battery_threshold}
+
+    def update_configuration(self, config):
+        """Update agent's current internal configuration.
+        """
+        for key, value in config:
+            if key in CoopaAgent.settable_parameters:
+                setattr(self, key, value)
+
     @property
     def trash_capacity(self):
         return self._trash_capacity
-    
-    @property
-    def battery_power(self):
-        return self._battery_power
+
+    @trash_capacity.setter
+    def trash_capacity(self, new_capacity):
+        assert not new_capacity < 0
+        self._trash_capacity = new_capacity
 
     @property
     def speed(self):
         return self._speed
 
+    @speed.setter
+    def speed(self, new_speed):
+        assert not new_speed < 0
+        self._speed = new_speed
+
     @property
     def scan_radius(self):
         return self._scan_radius
 
-    def drain_battery(self):
-        """Drain battery based on the current agent configuration (speed, scan radius, etc.).
-        """
-        scan_drain = (self.scan_radius - 1) ** 1.5  # Magic number
-        speed_drain = self._speed  # Currently agents have fixed speed
-        self._battery_power -= scan_drain + speed_drain
+    @scan_radius.setter
+    def scan_radius(self, new_radius):
+        assert new_radius > 0
+        self._scan_radius = new_radius
+
+    @property
+    def battery_threshold(self):
+        return self._battery_threshold
+
+    @battery_threshold.setter
+    def battery_threshold(self, new_threshold):
+        assert new_threshold > 0
+        self._battery_threshold = new_threshold
 
     def move(self):
         if self._target_pos is not None:
@@ -238,13 +267,13 @@ class CoopaAgent(BasicAgent):
             
             elif type(neighbor) is RechargePoint:
                 # Recharge
-                if self._battery_power < 120:
+                if self.battery.charge < 120:
                     self._is_recharging = True
 
         self._log(str(self))
 
     def __repr__(self):
-        return "{}(bp:{:.2f}, tc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery_power, self.trash_count,
+        return "{}(bp:{:.2f}, tc:{}, cp:{}, tp:{}, cg:{})".format(self.name, self.battery.charge, self.trash_count,
                                                                   self.pos, self.target_pos, self._meta_system._current_goal)
 
     def __str__(self):

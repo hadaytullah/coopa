@@ -39,7 +39,7 @@ class PotentialFieldMetaSystem:
         self._resource_awareness_step()
         
     def _resource_awareness_step(self):
-        if self._agent.battery_power < 100: #TODO: take care of constants related to the grid size
+        if self._agent.battery.charge < 100: #TODO: take care of constants related to the grid size
             #find recharge point
             if len(self._knowledge_base.recharge_point_positions) > 0:
                 self._agent.target_pos = self._knowledge_base.recharge_point_positions[0]
