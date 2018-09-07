@@ -9,6 +9,7 @@ from drop_point import DropPoint
 from message import Message
 from cooperation import Cooperation
 from pf_metasystem import PotentialFieldMetaSystem
+from pf_mape import PotentialFieldMape
 from knowledge_base import KnowledgeBase
 from recharge_point import RechargePoint
 from hot_spot_potential import HotSpotPotentialField
@@ -28,7 +29,7 @@ class AgentPotentialField(AgentBasic):
         self.name = "AgentPF#{:0>3}".format(self.unique_id)
         self._logger = create_logger(self.name, log_path=log_path)
 
-        self._meta_system = PotentialFieldMetaSystem(self)
+        #self._meta_system = PotentialFieldMetaSystem(self, )
 
         # Map with different layers
         self._map = {}
@@ -75,10 +76,13 @@ class AgentPotentialField(AgentBasic):
         self._trash_pf = HotSpotPotentialField(self._grid.width, self._grid.height, [])
         self._explore_pf = ExplorePotentialField(self._grid.width, self._grid.height, [])
 
+        # MAPE
+        self._mape = PotentialFieldMape(self)
+
     def step(self):
         if self._battery_power > 0:
             if self._is_recharging is False:
-                self._meta_system.step()
+                self._mape.step()
                 super(AgentPotentialField, self).step()
                 self.drain_battery()
             else:
@@ -87,8 +91,8 @@ class AgentPotentialField(AgentBasic):
         else:
             self._log("Out of power.", logging.WARNING)
 
-    def receive(self, message):
-        self._meta_system.cooperation_awareness(message) #have to improve this, temporary solution
+    #def receive(self, message):
+        #self._meta_system.cooperation_awareness(message) #have to improve this, temporary solution
     
     def recharge_battery(self):
         self._battery_power += 10
